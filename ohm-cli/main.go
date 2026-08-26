@@ -1,7 +1,7 @@
 package main
 
+// use `go get -tool github.com/jpillora/md-tmpl` to add to go.mod
 //go:generate go run github.com/jpillora/md-tmpl -w README.md
-//go:generate go generate ./utils
 
 import (
 	"fmt"

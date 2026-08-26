@@ -6,6 +6,8 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
+github.com/jpillora/md-tmpl v1.3.0 h1:M9XrHfGD0Jue5arhejVUj4HE74PXuaR1/KC0FJ9olWk=
+github.com/jpillora/md-tmpl v1.3.0/go.mod h1:7kH6OzBwoCAbrXV0OiXKAYLdXwVCMAEirNxZ5uUl5pA=
 github.com/jpillora/opts v1.8.0 h1:6fNSkWlCgAHixpVhCGbqwWKQTF/hOa71glADPyYrsec=
 github.com/jpillora/opts v1.8.0/go.mod h1:qImEWPlyKljhTZZlYxhGbZVBTlJTibClZQRZbpNr/QM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
