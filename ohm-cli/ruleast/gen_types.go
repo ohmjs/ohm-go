@@ -29,7 +29,7 @@ func (vc genCmd) Cli(sb *strings.Builder) {
 		sb.WriteString(" \\\n --go-runtime-import ")
 		sb.WriteString(vc.GoRuntimeImport)
 	}
-	if vc.GoRuntimePackage != "" && vc.GoRuntimePackage != "goohm" {
+	if vc.GoRuntimePackage != "" && vc.GoRuntimePackage != "ohm" {
 		sb.WriteString(" \\\n --go-runtime-package ")
 		sb.WriteString(vc.GoRuntimePackage)
 	}

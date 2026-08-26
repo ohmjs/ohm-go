@@ -23,7 +23,7 @@ func NewGenGoCmd() *genGoCmd {
 	return &genGoCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
-			GoRuntimePackage: "goohm",
+			GoRuntimePackage: "ohm",
 			// sbldr:             &strings.Builder{},
 			// SuffixOutfLineNos: true,
 		},
@@ -32,7 +32,7 @@ func NewGenGoCmd() *genGoCmd {
 
 func (vc *genGoCmd) Cli() {
 	sb := strings.Builder{}
-	sb.WriteString("ohmgo generate go")
+	sb.WriteString("ohm-cli generate go")
 	vc.GenCmd.Cli(&sb)
 	if vc.SkipTypeCheckMethod {
 		sb.WriteString(" \\\n --skip-type-check-method")

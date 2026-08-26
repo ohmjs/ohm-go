@@ -1,6 +1,6 @@
-# OhmGo — CLI for Ohm, for Go
+# ohm-cli — CLI for Ohm, for Go
 
-`ohmgo` is a command-line tool that helps you compile `.ohm` grammar files into WebAssembly (`.wasm`) for use with the [`goohm`](https://github.com/ohmjs/ohm-go/ohm) Go runtime.
+`ohm-cli` is a command-line tool that helps you compile `.ohm` grammar files into WebAssembly (`.wasm`) for use with the [`goohm`](https://github.com/ohmjs/ohm-go/ohm) Go runtime.
 
 It does not compile grammars directly. Instead, it generates the Docker command needed to compile them via the official `ohmjs/ohm` image — letting you review, adapt, or automate the compilation step however you like.
 
@@ -12,20 +12,20 @@ The typical workflow for using Ohm in a Go project looks like this:
 my-grammar.ohm  →  (docker compile)  →  my-grammar.wasm  →  embedded in Go binary
 ```
 
-`ohmgo` handles the middle step by generating the correct `docker run` invocation, pinned to the version of the `goohm` runtime you're using.
+`ohm-cli` handles the middle step by generating the correct `docker run` invocation, pinned to the version of the `goohm` runtime you're using.
 
 ## Installation
 
 ```bash
-go install github.com/ohmjs/ohmgo@latest
+go install github.com/ohmjs/ohm-cli@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/ohmjs/ohmgo
-cd ohmgo
-go build -o ohmgo .
+git clone https://github.com/ohmjs/ohm-cli
+cd ohm-cli
+go build -o ohm-cli .
 ```
 
 ## Commands
@@ -103,7 +103,7 @@ docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
 Useful when you want a reusable script checked into your repo:
 
 ```bash
-ohmgo generate command --format=script my-grammar.ohm > compile.sh
+ohm-cli generate command --format=script my-grammar.ohm > compile.sh
 chmod +x compile.sh
 ./compile.sh
 ```
@@ -120,7 +120,7 @@ import (
     _ "embed"
     "log"
 
-    goohm "github.com/ohmjs/ohm-go/ohm"
+    "github.com/ohmjs/ohm-go/ohm"
 )
 
 //go:embed my-grammar.wasm
@@ -128,7 +128,7 @@ var wasmBytes []byte
 
 func main() {
     ctx := context.Background()
-    grmr, err := goohm.NewGrammar(ctx, wasmBytes)
+    grmr, err := ohm.NewGrammar(ctx, wasmBytes)
     if err != nil {
         log.Fatalf("creating grammar: %v", err)
     }
@@ -151,8 +151,8 @@ func main() {
 Install or remove zsh, bash or fish completion:
 
 ```bash
-ohmgo --install    # install zsh, bash or fish completions
-ohmgo --uninstall  # remove zsh, bash or fish completion
+ohm-cli --install    # install zsh, bash or fish completions
+ohm-cli --uninstall  # remove zsh, bash or fish completion
 ```
 
 ### Development Notes
@@ -161,13 +161,13 @@ ohmgo --uninstall  # remove zsh, bash or fish completion
 
 ```
 go install
-ohmgo generate go --skip-type-check-method --go-type-package ruleast --file-prefix ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
-ohmgo generate go --skip-type-check-method --grammar-name ES5 --hand-coded-walk @../../examples/ecmascript/src/es5.ohm
+ohm-cli generate go --skip-type-check-method --go-type-package ruleast --file-prefix ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
+ohm-cli generate go --skip-type-check-method --grammar-name ES5 --hand-coded-walk @../../examples/ecmascript/src/es5.ohm
 
-go install && ohmgo generate go -P ruleast -f ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
-go install && ohmgo generate go --grammar-name  ES5 @../../examples/ecmascript/src/es5.ohm
+go install && ohm-cli generate go -P ruleast -f ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
+go install && ohm-cli generate go --grammar-name  ES5 @../../examples/ecmascript/src/es5.ohm
 
-go install && ohmgo generate parts go_types_tmpl -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
+go install && ohm-cli generate parts go_types_tmpl -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
 ```
 
 ```
@@ -180,28 +180,28 @@ cd ..
 ./genadl.sh
 
 # manual AST -> AST which will be the output of collect
-go install && ohmgo o2o | jq '.' > genvisitor/ohm.json
+go install && ohm-cli o2o | jq '.' > genvisitor/ohm.json
 
 # generate visitor from code in genvisitor/genvisitor_fn.go
-go install && ohmgo generate visitor2 ../../packages/ohm-js/src/ohm-grammar.ohm  > genvisitor/gen2/ohmgrammar/visitor.go
+go install && ohm-cli generate visitor2 ../../packages/ohm-js/src/ohm-grammar.ohm  > genvisitor/gen2/ohmgrammar/visitor.go
 
 # testing collector
-go install && ohmgo collect_visitor_ast ../../packages/ohm-js/src/ohm-grammar.ohm  | jq '.'
+go install && ohm-cli collect_visitor_ast ../../packages/ohm-js/src/ohm-grammar.ohm  | jq '.'
 
 # test visitor walk
-go install && ohmgo exec ../../packages/ohm-js/src/ohm-grammar.ohm
+go install && ohm-cli exec ../../packages/ohm-js/src/ohm-grammar.ohm
 
 # generate sexpr
-go install && ohmgo to_sexpr -S -t ../../packages/ohm-js/src/ohm-grammar.ohm > ohm-grammar.sexpr
+go install && ohm-cli to_sexpr -S -t ../../packages/ohm-js/src/ohm-grammar.ohm > ohm-grammar.sexpr
 
-go install && ohmgo test_gmrs  --re-match-test . tests/ruleast_01.txtar
+go install && ohm-cli test_gmrs  --re-match-test . tests/ruleast_01.txtar
 
-go install && ohmgo generate types2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/types.go
-go install && ohmgo generate interfaces2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/interfaces.go
-go install && ohmgo generate accepts2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/accepts.go
+go install && ohm-cli generate types2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/types.go
+go install && ohm-cli generate interfaces2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/interfaces.go
+go install && ohm-cli generate accepts2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/accepts.go
 
-go install && ohmgo generate types2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/types.go
-go install && ohmgo generate interfaces2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/interfaces.go
-go install && ohmgo generate accepts2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/accepts.go
+go install && ohm-cli generate types2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/types.go
+go install && ohm-cli generate interfaces2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/interfaces.go
+go install && ohm-cli generate accepts2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/accepts.go
 
 ```

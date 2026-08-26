@@ -39,7 +39,7 @@ func NewGenInterfaceCmd() any {
 	vc := &genTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
-			GoRuntimePackage: "goohm",
+			GoRuntimePackage: "ohm",
 			// sbldr:            &strings.Builder{},
 			// SuffixOutfLineNos: true,
 		},
@@ -48,7 +48,7 @@ func NewGenInterfaceCmd() any {
 		sbldr:      &strings.Builder{},
 		cli:        strings.Join(os.Args, " "),
 	}
-	// vc.Cli("ohmgo generate parts go_interfaces")
+	// vc.Cli("ohm-cli generate parts go_interfaces")
 	return vc
 }
 
@@ -56,7 +56,7 @@ func NewGenAcceptsCmd() *genTmplCmd {
 	vc := &genTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
-			GoRuntimePackage: "goohm",
+			GoRuntimePackage: "ohm",
 			// sbldr:            &strings.Builder{},
 			// SuffixOutfLineNos: true,
 		},
@@ -65,7 +65,7 @@ func NewGenAcceptsCmd() *genTmplCmd {
 		sbldr:      &strings.Builder{},
 	}
 	vc.cli = strings.Join(os.Args, " ")
-	// vc.Cli("ohmgo generate parts go_accepts")
+	// vc.Cli("ohm-cli generate parts go_accepts")
 	return vc
 }
 
@@ -73,7 +73,7 @@ func NewGenTypesCmd() any {
 	vc := &genTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
-			GoRuntimePackage: "goohm",
+			GoRuntimePackage: "ohm",
 			// sbldr:            &strings.Builder{},
 			// SuffixOutfLineNos: true,
 		},
@@ -82,7 +82,7 @@ func NewGenTypesCmd() any {
 		sbldr:      &strings.Builder{},
 		cli:        strings.Join(os.Args, " "),
 	}
-	// vc.Cli("ohmgo generate parts go_types")
+	// vc.Cli("ohm-cli generate parts go_types")
 	return vc
 }
 
