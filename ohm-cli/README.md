@@ -1,25 +1,207 @@
-# Ohm-cli
+# OhmGo — CLI for Ohm, for Go
 
-## Install 
+`ohmgo` is a command-line tool that helps you compile `.ohm` grammar files into WebAssembly (`.wasm`) for use with the [`goohm`](https://github.com/ohmjs/ohm-go/ohm) Go runtime.
 
-### Source
-```sh
-go install github.com/ohmjs/ohm-go/ohm-cli@latest
+It does not compile grammars directly. Instead, it generates the Docker command needed to compile them via the official `ohmjs/ohm` image — letting you review, adapt, or automate the compilation step however you like.
+
+## Overview
+
+The typical workflow for using Ohm in a Go project looks like this:
+
+```
+my-grammar.ohm  →  (docker compile)  →  my-grammar.wasm  →  embedded in Go binary
+```
+
+`ohmgo` handles the middle step by generating the correct `docker run` invocation, pinned to the version of the `goohm` runtime you're using.
+
+## Installation
+
+```bash
+go install github.com/ohmjs/ohmgo@latest
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/ohmjs/ohmgo
+cd ohmgo
+go build -o ohmgo .
 ```
 
 ## Commands
 
-<!--tmpl,code=bash:go run main.go --help -->
+### `generate command`
+
+Generates a Docker command to compile a `.ohm` grammar file into a `.wasm` file compatible with the current `goohm` runtime version.
+
+<!--tmpl,code=bash:go run main.go generate command -h -->
 ``` bash 
 
-  Usage: ohm [options]
+  Usage: ohm-cli generate command [options] <source-file>
+
+  Generate a command, in the specified format (default is 'command') to compile a .ohm grammar file
+  using the ohmjs/ohm docker image. Does not actually compile the file.
+
+  Path to .ohm grammar file to compile.
 
   Options:
-  --help, -h       display help
-
-  Completion options:
-  --install, -i    install zsh-completion
-  --uninstall, -u  uninstall zsh-completion
+  --debug, -d
+  --docker-tag, -t    The version tag of the ohmjs/ohm docker image to use in the generated command.
+                      Defaults to the version of the goohm runtime included in this cli. (default
+                      18.0.0-beta.16)
+  --grammar-name, -g
+  --output, -o
+  --format, -f        Output format. One of: command, go_generate, script. (default command)
+  --help, -h          display help
 
 ```
 <!--/tmpl-->
+
+The `--docker-tag` default is derived at runtime from the `goohm` package, so it always matches the runtime version bundled with this CLI — preventing version mismatches between the compiler and the runtime.
+
+## Output Formats
+
+The `--format` flag controls how the generated command is wrapped.
+
+### `command` (default)
+
+A ready-to-run shell snippet with a comment:
+
+<!--tmpl,code=bash:go run main.go generate command my-grammar.ohm -->
+``` bash 
+
+# To generate a .wasm file for use with this version of the runtime, run:
+docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+```
+<!--/tmpl-->
+
+### `go_generate`
+
+A `//go:generate` directive for embedding in a Go source file:
+
+<!--tmpl,code=bash:go run main.go generate command --format=go_generate my-grammar.ohm -->
+``` bash 
+
+//go:generate docker run --rm -v $PWD:/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+```
+<!--/tmpl-->
+
+Paste this into any `.go` file in your package. Running `go generate ./...` will compile the grammar and produce `my-grammar.wasm` in the same directory.
+
+### `script`
+
+A standalone shell script with a shebang:
+
+<!--tmpl,code=bash:go run main.go generate command --format=script my-grammar.ohm -->
+``` bash 
+#!/bin/sh
+
+docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+```
+<!--/tmpl-->
+
+Useful when you want a reusable script checked into your repo:
+
+```bash
+ohmgo generate command --format=script my-grammar.ohm > compile.sh
+chmod +x compile.sh
+./compile.sh
+```
+
+## Using the Compiled Grammar in Go
+
+Once you have a `.wasm` file, load it with `goohm`:
+
+```go
+package main
+
+import (
+    "context"
+    _ "embed"
+    "log"
+
+    goohm "github.com/ohmjs/ohm-go/ohm"
+)
+
+//go:embed my-grammar.wasm
+var wasmBytes []byte
+
+func main() {
+    ctx := context.Background()
+    grmr, err := goohm.NewGrammar(ctx, wasmBytes)
+    if err != nil {
+        log.Fatalf("creating grammar: %v", err)
+    }
+    defer grmr.Close()
+
+    result, err := grmr.Match("Hello, world!")
+    if err != nil {
+        log.Fatalf("matching: %v", err)
+    }
+    defer result.Close()
+
+    if result.Succeeded() {
+        log.Println("match succeeded")
+    }
+}
+```
+
+## Shell Completion
+
+Install or remove zsh, bash or fish completion:
+
+```bash
+ohmgo --install    # install zsh, bash or fish completions
+ohmgo --uninstall  # remove zsh, bash or fish completion
+```
+
+### Development Notes
+
+<!-- This is current just a placeholder for commands useful for doing dev. -->
+
+```
+go install
+ohmgo generate go --skip-type-check-method --go-type-package ruleast --file-prefix ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
+ohmgo generate go --skip-type-check-method --grammar-name ES5 --hand-coded-walk @../../examples/ecmascript/src/es5.ohm
+
+go install && ohmgo generate go -P ruleast -f ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
+go install && ohmgo generate go --grammar-name  ES5 @../../examples/ecmascript/src/es5.ohm
+
+go install && ohmgo generate parts go_types_tmpl -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
+```
+
+```
+# ohm_model.adl -> golang
+cd genvisitor
+./genadl.sh
+cd ..
+
+# genvisitor.adl -> golang
+./genadl.sh
+
+# manual AST -> AST which will be the output of collect
+go install && ohmgo o2o | jq '.' > genvisitor/ohm.json
+
+# generate visitor from code in genvisitor/genvisitor_fn.go
+go install && ohmgo generate visitor2 ../../packages/ohm-js/src/ohm-grammar.ohm  > genvisitor/gen2/ohmgrammar/visitor.go
+
+# testing collector
+go install && ohmgo collect_visitor_ast ../../packages/ohm-js/src/ohm-grammar.ohm  | jq '.'
+
+# test visitor walk
+go install && ohmgo exec ../../packages/ohm-js/src/ohm-grammar.ohm
+
+# generate sexpr
+go install && ohmgo to_sexpr -S -t ../../packages/ohm-js/src/ohm-grammar.ohm > ohm-grammar.sexpr
+
+go install && ohmgo test_gmrs  --re-match-test . tests/ruleast_01.txtar
+
+go install && ohmgo generate types2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/types.go
+go install && ohmgo generate interfaces2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/interfaces.go
+go install && ohmgo generate accepts2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/accepts.go
+
+go install && ohmgo generate types2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/types.go
+go install && ohmgo generate interfaces2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/interfaces.go
+go install && ohmgo generate accepts2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/accepts.go
+
+```
