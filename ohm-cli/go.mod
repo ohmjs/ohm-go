@@ -1,4 +1,4 @@
-module ohm
+module github.com/ohmjs/ohm-go/ohm-cli
 
 go 1.26.4
 
