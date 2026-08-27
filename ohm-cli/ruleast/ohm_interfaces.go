@@ -105,29 +105,29 @@ type VisitorPRE_SuperGrammar[P, R any] interface {
 // | ident Formals?            ":=" OverrideRuleBody  -- override
 // | ident Formals?            "+=" RuleBody  -- extend
 // ----
-type Switcher_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R])
+type Visitor_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R])
 }
-type SwitcherE_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R]) error
+type VisitorE_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R]) error
 }
-type SwitcherP_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R], payload P)
+type VisitorP_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R], payload P)
 }
-type SwitcherPE_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R], payload P) error
+type VisitorPE_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R], payload P) error
 }
-type SwitcherR_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R]) (result R)
+type VisitorR_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R]) (result R)
 }
-type SwitcherRE_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R]) (result R, err error)
+type VisitorRE_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R]) (result R, err error)
 }
-type SwitcherPR_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R], payload P) (result R)
+type VisitorPR_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R], payload P) (result R)
 }
-type SwitcherPRE_Rule[P, R any] interface {
-	SwitchRule(node *Rule[P, R], payload P) (result R, err error)
+type VisitorPRE_Rule[P, R any] interface {
+	VisitRule(node *Rule[P, R], payload P) (result R, err error)
 }
 
 // Rule_define
@@ -253,29 +253,29 @@ type VisitorPRE_RuleBody[P, R any] interface {
 // = Seq caseName  -- inline
 // | Seq
 // ----
-type Switcher_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R])
+type Visitor_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R])
 }
-type SwitcherE_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R]) error
+type VisitorE_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R]) error
 }
-type SwitcherP_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R], payload P)
+type VisitorP_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R], payload P)
 }
-type SwitcherPE_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R], payload P) error
+type VisitorPE_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R], payload P) error
 }
-type SwitcherR_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R]) (result R)
+type VisitorR_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R]) (result R)
 }
-type SwitcherRE_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R]) (result R, err error)
+type VisitorRE_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R]) (result R, err error)
 }
-type SwitcherPR_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R], payload P) (result R)
+type VisitorPR_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R], payload P) (result R)
 }
-type SwitcherPRE_TopLevelTerm[P, R any] interface {
-	SwitchTopLevelTerm(node *TopLevelTerm[P, R], payload P) (result R, err error)
+type VisitorPRE_TopLevelTerm[P, R any] interface {
+	VisitTopLevelTerm(node *TopLevelTerm[P, R], payload P) (result R, err error)
 }
 
 // TopLevelTerm_inline
@@ -343,29 +343,29 @@ type VisitorPRE_OverrideRuleBody[P, R any] interface {
 // = "..."  -- superSplice
 // | TopLevelTerm
 // ----
-type Switcher_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R])
+type Visitor_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R])
 }
-type SwitcherE_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) error
+type VisitorE_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) error
 }
-type SwitcherP_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P)
+type VisitorP_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P)
 }
-type SwitcherPE_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) error
+type VisitorPE_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) error
 }
-type SwitcherR_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) (result R)
+type VisitorR_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) (result R)
 }
-type SwitcherRE_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) (result R, err error)
+type VisitorRE_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R]) (result R, err error)
 }
-type SwitcherPR_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) (result R)
+type VisitorPR_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) (result R)
 }
-type SwitcherPRE_OverrideTopLevelTerm[P, R any] interface {
-	SwitchOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) (result R, err error)
+type VisitorPRE_OverrideTopLevelTerm[P, R any] interface {
+	VisitOverrideTopLevelTerm(node *OverrideTopLevelTerm[P, R], payload P) (result R, err error)
 }
 
 // OverrideTopLevelTerm_superSplice
@@ -525,29 +525,29 @@ type VisitorPRE_Seq[P, R any] interface {
 // | Pred "?"  -- opt
 // | Pred
 // ----
-type Switcher_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R])
+type Visitor_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R])
 }
-type SwitcherE_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R]) error
+type VisitorE_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R]) error
 }
-type SwitcherP_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R], payload P)
+type VisitorP_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R], payload P)
 }
-type SwitcherPE_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R], payload P) error
+type VisitorPE_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R], payload P) error
 }
-type SwitcherR_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R]) (result R)
+type VisitorR_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R]) (result R)
 }
-type SwitcherRE_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R]) (result R, err error)
+type VisitorRE_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R]) (result R, err error)
 }
-type SwitcherPR_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R], payload P) (result R)
+type VisitorPR_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R], payload P) (result R)
 }
-type SwitcherPRE_Iter[P, R any] interface {
-	SwitchIter(node *Iter[P, R], payload P) (result R, err error)
+type VisitorPRE_Iter[P, R any] interface {
+	VisitIter(node *Iter[P, R], payload P) (result R, err error)
 }
 
 // Iter_star
@@ -644,29 +644,29 @@ type VisitorPRE_IterOpt[P, R any] interface {
 // | "&" Lex  -- lookahead
 // | Lex
 // ----
-type Switcher_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R])
+type Visitor_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R])
 }
-type SwitcherE_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R]) error
+type VisitorE_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R]) error
 }
-type SwitcherP_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R], payload P)
+type VisitorP_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R], payload P)
 }
-type SwitcherPE_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R], payload P) error
+type VisitorPE_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R], payload P) error
 }
-type SwitcherR_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R]) (result R)
+type VisitorR_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R]) (result R)
 }
-type SwitcherRE_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R]) (result R, err error)
+type VisitorRE_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R]) (result R, err error)
 }
-type SwitcherPR_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R], payload P) (result R)
+type VisitorPR_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R], payload P) (result R)
 }
-type SwitcherPRE_Pred[P, R any] interface {
-	SwitchPred(node *Pred[P, R], payload P) (result R, err error)
+type VisitorPRE_Pred[P, R any] interface {
+	VisitPred(node *Pred[P, R], payload P) (result R, err error)
 }
 
 // Pred_not
@@ -733,29 +733,29 @@ type VisitorPRE_PredLookahead[P, R any] interface {
 // = "#" Base  -- lex
 // | Base
 // ----
-type Switcher_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R])
+type Visitor_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R])
 }
-type SwitcherE_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R]) error
+type VisitorE_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R]) error
 }
-type SwitcherP_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R], payload P)
+type VisitorP_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R], payload P)
 }
-type SwitcherPE_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R], payload P) error
+type VisitorPE_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R], payload P) error
 }
-type SwitcherR_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R]) (result R)
+type VisitorR_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R]) (result R)
 }
-type SwitcherRE_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R]) (result R, err error)
+type VisitorRE_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R]) (result R, err error)
 }
-type SwitcherPR_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R], payload P) (result R)
+type VisitorPR_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R], payload P) (result R)
 }
-type SwitcherPRE_Lex[P, R any] interface {
-	SwitchLex(node *Lex[P, R], payload P) (result R, err error)
+type VisitorPRE_Lex[P, R any] interface {
+	VisitLex(node *Lex[P, R], payload P) (result R, err error)
 }
 
 // Lex_lex
@@ -795,29 +795,29 @@ type VisitorPRE_LexLex[P, R any] interface {
 // | terminal                                       -- terminal
 // | "(" Alt ")"                                    -- paren
 // ----
-type Switcher_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R])
+type Visitor_Base[P, R any] interface {
+	VisitBase(node *Base[P, R])
 }
-type SwitcherE_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R]) error
+type VisitorE_Base[P, R any] interface {
+	VisitBase(node *Base[P, R]) error
 }
-type SwitcherP_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R], payload P)
+type VisitorP_Base[P, R any] interface {
+	VisitBase(node *Base[P, R], payload P)
 }
-type SwitcherPE_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R], payload P) error
+type VisitorPE_Base[P, R any] interface {
+	VisitBase(node *Base[P, R], payload P) error
 }
-type SwitcherR_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R]) (result R)
+type VisitorR_Base[P, R any] interface {
+	VisitBase(node *Base[P, R]) (result R)
 }
-type SwitcherRE_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R]) (result R, err error)
+type VisitorRE_Base[P, R any] interface {
+	VisitBase(node *Base[P, R]) (result R, err error)
 }
-type SwitcherPR_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R], payload P) (result R)
+type VisitorPR_Base[P, R any] interface {
+	VisitBase(node *Base[P, R], payload P) (result R)
 }
-type SwitcherPRE_Base[P, R any] interface {
-	SwitchBase(node *Base[P, R], payload P) (result R, err error)
+type VisitorPRE_Base[P, R any] interface {
+	VisitBase(node *Base[P, R], payload P) (result R, err error)
 }
 
 // Base_application
@@ -1254,29 +1254,29 @@ type VisitorPRE_LexTerminalChar[P, R any] interface {
 // | "\\u" hexDigit hexDigit hexDigit hexDigit  -- unicodeEscape
 // | "\\x" hexDigit hexDigit                    -- hexEscape
 // ----
-type Switcher_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R])
+type Visitor_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R])
 }
-type SwitcherE_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R]) error
+type VisitorE_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R]) error
 }
-type SwitcherP_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R], payload P)
+type VisitorP_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R], payload P)
 }
-type SwitcherPE_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R], payload P) error
+type VisitorPE_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R], payload P) error
 }
-type SwitcherR_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R]) (result R)
+type VisitorR_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R]) (result R)
 }
-type SwitcherRE_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R]) (result R, err error)
+type VisitorRE_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R]) (result R, err error)
 }
-type SwitcherPR_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R], payload P) (result R)
+type VisitorPR_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R], payload P) (result R)
 }
-type SwitcherPRE_LexEscapeChar[P, R any] interface {
-	SwitchLexEscapeChar(node *LexEscapeChar[P, R], payload P) (result R, err error)
+type VisitorPRE_LexEscapeChar[P, R any] interface {
+	VisitLexEscapeChar(node *LexEscapeChar[P, R], payload P) (result R, err error)
 }
 
 // escapeChar_backslash
@@ -1606,29 +1606,29 @@ type VisitorPRE_LexSpace[P, R any] interface {
 // = "//" (~"\n" any)* &("\n" | end)  -- singleLine
 // | "/*" (~"*/" any)* "*/"  -- multiLine
 // ----
-type Switcher_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R])
+type Visitor_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R])
 }
-type SwitcherE_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R]) error
+type VisitorE_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R]) error
 }
-type SwitcherP_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R], payload P)
+type VisitorP_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R], payload P)
 }
-type SwitcherPE_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R], payload P) error
+type VisitorPE_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R], payload P) error
 }
-type SwitcherR_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R]) (result R)
+type VisitorR_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R]) (result R)
 }
-type SwitcherRE_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R]) (result R, err error)
+type VisitorRE_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R]) (result R, err error)
 }
-type SwitcherPR_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R], payload P) (result R)
+type VisitorPR_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R], payload P) (result R)
 }
-type SwitcherPRE_LexComment[P, R any] interface {
-	SwitchLexComment(node *LexComment[P, R], payload P) (result R, err error)
+type VisitorPRE_LexComment[P, R any] interface {
+	VisitLexComment(node *LexComment[P, R], payload P) (result R, err error)
 }
 
 // comment_singleLine

@@ -78,28 +78,28 @@ type VisitorPRE_{{.Name|rulename}}[P, R any] interface {
 {{- end -}}
 
 {{- define "CasesRuleNode_GoInterface" -}}
-type Switcher_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R])
+type Visitor_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R])
 }
-type SwitcherE_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) error
+type VisitorE_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) error
 }
-type SwitcherP_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P)
+type VisitorP_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P)
 }
-type SwitcherPE_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) error
+type VisitorPE_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) error
 }
-type SwitcherR_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R)
+type VisitorR_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R)
 }
-type SwitcherRE_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R, err error)
+type VisitorRE_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R, err error)
 }
-type SwitcherPR_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R)
+type VisitorPR_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R)
 }
-type SwitcherPRE_{{.Name|rulename}}[P, R any] interface {
-	Switch{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R, err error)
+type VisitorPRE_{{.Name|rulename}}[P, R any] interface {
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R, err error)
 }
 {{- end -}}

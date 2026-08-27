@@ -255,36 +255,36 @@ func (node *SuperGrammar[P, R]) AcceptIdent(visitor any, payload P) (result R, e
 // | ident Formals?            "+=" RuleBody  -- extend
 func (node *Rule[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "Rule")
-	if v, ok := visitor.(Switcher_Rule[P, R]); ok {
-		v.SwitchRule(node)
+	if v, ok := visitor.(Visitor_Rule[P, R]); ok {
+		v.VisitRule(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_Rule[P, R]); ok {
-		err = v.SwitchRule(node)
+	if v, ok := visitor.(VisitorE_Rule[P, R]); ok {
+		err = v.VisitRule(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_Rule[P, R]); ok {
-		v.SwitchRule(node, payload)
+	if v, ok := visitor.(VisitorP_Rule[P, R]); ok {
+		v.VisitRule(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_Rule[P, R]); ok {
-		err = v.SwitchRule(node, payload)
+	if v, ok := visitor.(VisitorPE_Rule[P, R]); ok {
+		err = v.VisitRule(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_Rule[P, R]); ok {
-		result = v.SwitchRule(node)
+	if v, ok := visitor.(VisitorR_Rule[P, R]); ok {
+		result = v.VisitRule(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_Rule[P, R]); ok {
-		result, err = v.SwitchRule(node)
+	if v, ok := visitor.(VisitorRE_Rule[P, R]); ok {
+		result, err = v.VisitRule(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_Rule[P, R]); ok {
-		result = v.SwitchRule(node, payload)
+	if v, ok := visitor.(VisitorPR_Rule[P, R]); ok {
+		result = v.VisitRule(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_Rule[P, R]); ok {
-		result, err = v.SwitchRule(node, payload)
+	if v, ok := visitor.(VisitorPRE_Rule[P, R]); ok {
+		result, err = v.VisitRule(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "Rule")
@@ -701,36 +701,36 @@ func (node *RuleBody[P, R]) AcceptNonemptyListOf(visitor any, payload P) (result
 // | Seq
 func (node *TopLevelTerm[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "TopLevelTerm")
-	if v, ok := visitor.(Switcher_TopLevelTerm[P, R]); ok {
-		v.SwitchTopLevelTerm(node)
+	if v, ok := visitor.(Visitor_TopLevelTerm[P, R]); ok {
+		v.VisitTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_TopLevelTerm[P, R]); ok {
-		err = v.SwitchTopLevelTerm(node)
+	if v, ok := visitor.(VisitorE_TopLevelTerm[P, R]); ok {
+		err = v.VisitTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_TopLevelTerm[P, R]); ok {
-		v.SwitchTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorP_TopLevelTerm[P, R]); ok {
+		v.VisitTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_TopLevelTerm[P, R]); ok {
-		err = v.SwitchTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPE_TopLevelTerm[P, R]); ok {
+		err = v.VisitTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_TopLevelTerm[P, R]); ok {
-		result = v.SwitchTopLevelTerm(node)
+	if v, ok := visitor.(VisitorR_TopLevelTerm[P, R]); ok {
+		result = v.VisitTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_TopLevelTerm[P, R]); ok {
-		result, err = v.SwitchTopLevelTerm(node)
+	if v, ok := visitor.(VisitorRE_TopLevelTerm[P, R]); ok {
+		result, err = v.VisitTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_TopLevelTerm[P, R]); ok {
-		result = v.SwitchTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPR_TopLevelTerm[P, R]); ok {
+		result = v.VisitTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_TopLevelTerm[P, R]); ok {
-		result, err = v.SwitchTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPRE_TopLevelTerm[P, R]); ok {
+		result, err = v.VisitTopLevelTerm(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "TopLevelTerm")
@@ -913,36 +913,36 @@ func (node *OverrideRuleBody[P, R]) AcceptNonemptyListOf(visitor any, payload P)
 // | TopLevelTerm
 func (node *OverrideTopLevelTerm[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "OverrideTopLevelTerm")
-	if v, ok := visitor.(Switcher_OverrideTopLevelTerm[P, R]); ok {
-		v.SwitchOverrideTopLevelTerm(node)
+	if v, ok := visitor.(Visitor_OverrideTopLevelTerm[P, R]); ok {
+		v.VisitOverrideTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_OverrideTopLevelTerm[P, R]); ok {
-		err = v.SwitchOverrideTopLevelTerm(node)
+	if v, ok := visitor.(VisitorE_OverrideTopLevelTerm[P, R]); ok {
+		err = v.VisitOverrideTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_OverrideTopLevelTerm[P, R]); ok {
-		v.SwitchOverrideTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorP_OverrideTopLevelTerm[P, R]); ok {
+		v.VisitOverrideTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_OverrideTopLevelTerm[P, R]); ok {
-		err = v.SwitchOverrideTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPE_OverrideTopLevelTerm[P, R]); ok {
+		err = v.VisitOverrideTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_OverrideTopLevelTerm[P, R]); ok {
-		result = v.SwitchOverrideTopLevelTerm(node)
+	if v, ok := visitor.(VisitorR_OverrideTopLevelTerm[P, R]); ok {
+		result = v.VisitOverrideTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_OverrideTopLevelTerm[P, R]); ok {
-		result, err = v.SwitchOverrideTopLevelTerm(node)
+	if v, ok := visitor.(VisitorRE_OverrideTopLevelTerm[P, R]); ok {
+		result, err = v.VisitOverrideTopLevelTerm(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_OverrideTopLevelTerm[P, R]); ok {
-		result = v.SwitchOverrideTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPR_OverrideTopLevelTerm[P, R]); ok {
+		result = v.VisitOverrideTopLevelTerm(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_OverrideTopLevelTerm[P, R]); ok {
-		result, err = v.SwitchOverrideTopLevelTerm(node, payload)
+	if v, ok := visitor.(VisitorPRE_OverrideTopLevelTerm[P, R]); ok {
+		result, err = v.VisitOverrideTopLevelTerm(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "OverrideTopLevelTerm")
@@ -1325,36 +1325,36 @@ func (node *Seq[P, R]) AcceptIter(visitor any, payload P) (result R, err error) 
 // | Pred
 func (node *Iter[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "Iter")
-	if v, ok := visitor.(Switcher_Iter[P, R]); ok {
-		v.SwitchIter(node)
+	if v, ok := visitor.(Visitor_Iter[P, R]); ok {
+		v.VisitIter(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_Iter[P, R]); ok {
-		err = v.SwitchIter(node)
+	if v, ok := visitor.(VisitorE_Iter[P, R]); ok {
+		err = v.VisitIter(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_Iter[P, R]); ok {
-		v.SwitchIter(node, payload)
+	if v, ok := visitor.(VisitorP_Iter[P, R]); ok {
+		v.VisitIter(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_Iter[P, R]); ok {
-		err = v.SwitchIter(node, payload)
+	if v, ok := visitor.(VisitorPE_Iter[P, R]); ok {
+		err = v.VisitIter(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_Iter[P, R]); ok {
-		result = v.SwitchIter(node)
+	if v, ok := visitor.(VisitorR_Iter[P, R]); ok {
+		result = v.VisitIter(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_Iter[P, R]); ok {
-		result, err = v.SwitchIter(node)
+	if v, ok := visitor.(VisitorRE_Iter[P, R]); ok {
+		result, err = v.VisitIter(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_Iter[P, R]); ok {
-		result = v.SwitchIter(node, payload)
+	if v, ok := visitor.(VisitorPR_Iter[P, R]); ok {
+		result = v.VisitIter(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_Iter[P, R]); ok {
-		result, err = v.SwitchIter(node, payload)
+	if v, ok := visitor.(VisitorPRE_Iter[P, R]); ok {
+		result, err = v.VisitIter(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "Iter")
@@ -1596,36 +1596,36 @@ func (node *IterOpt[P, R]) AcceptTerm(visitor any, payload P) (result R, err err
 // | Lex
 func (node *Pred[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "Pred")
-	if v, ok := visitor.(Switcher_Pred[P, R]); ok {
-		v.SwitchPred(node)
+	if v, ok := visitor.(Visitor_Pred[P, R]); ok {
+		v.VisitPred(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_Pred[P, R]); ok {
-		err = v.SwitchPred(node)
+	if v, ok := visitor.(VisitorE_Pred[P, R]); ok {
+		err = v.VisitPred(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_Pred[P, R]); ok {
-		v.SwitchPred(node, payload)
+	if v, ok := visitor.(VisitorP_Pred[P, R]); ok {
+		v.VisitPred(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_Pred[P, R]); ok {
-		err = v.SwitchPred(node, payload)
+	if v, ok := visitor.(VisitorPE_Pred[P, R]); ok {
+		err = v.VisitPred(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_Pred[P, R]); ok {
-		result = v.SwitchPred(node)
+	if v, ok := visitor.(VisitorR_Pred[P, R]); ok {
+		result = v.VisitPred(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_Pred[P, R]); ok {
-		result, err = v.SwitchPred(node)
+	if v, ok := visitor.(VisitorRE_Pred[P, R]); ok {
+		result, err = v.VisitPred(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_Pred[P, R]); ok {
-		result = v.SwitchPred(node, payload)
+	if v, ok := visitor.(VisitorPR_Pred[P, R]); ok {
+		result = v.VisitPred(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_Pred[P, R]); ok {
-		result, err = v.SwitchPred(node, payload)
+	if v, ok := visitor.(VisitorPRE_Pred[P, R]); ok {
+		result, err = v.VisitPred(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "Pred")
@@ -1795,36 +1795,36 @@ func (node *PredLookahead[P, R]) AcceptLex(visitor any, payload P) (result R, er
 // | Base
 func (node *Lex[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "Lex")
-	if v, ok := visitor.(Switcher_Lex[P, R]); ok {
-		v.SwitchLex(node)
+	if v, ok := visitor.(Visitor_Lex[P, R]); ok {
+		v.VisitLex(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_Lex[P, R]); ok {
-		err = v.SwitchLex(node)
+	if v, ok := visitor.(VisitorE_Lex[P, R]); ok {
+		err = v.VisitLex(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_Lex[P, R]); ok {
-		v.SwitchLex(node, payload)
+	if v, ok := visitor.(VisitorP_Lex[P, R]); ok {
+		v.VisitLex(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_Lex[P, R]); ok {
-		err = v.SwitchLex(node, payload)
+	if v, ok := visitor.(VisitorPE_Lex[P, R]); ok {
+		err = v.VisitLex(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_Lex[P, R]); ok {
-		result = v.SwitchLex(node)
+	if v, ok := visitor.(VisitorR_Lex[P, R]); ok {
+		result = v.VisitLex(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_Lex[P, R]); ok {
-		result, err = v.SwitchLex(node)
+	if v, ok := visitor.(VisitorRE_Lex[P, R]); ok {
+		result, err = v.VisitLex(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_Lex[P, R]); ok {
-		result = v.SwitchLex(node, payload)
+	if v, ok := visitor.(VisitorPR_Lex[P, R]); ok {
+		result = v.VisitLex(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_Lex[P, R]); ok {
-		result, err = v.SwitchLex(node, payload)
+	if v, ok := visitor.(VisitorPRE_Lex[P, R]); ok {
+		result, err = v.VisitLex(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "Lex")
@@ -1925,36 +1925,36 @@ func (node *LexLex[P, R]) AcceptBase(visitor any, payload P) (result R, err erro
 // | "(" Alt ")"                                    -- paren
 func (node *Base[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "Base")
-	if v, ok := visitor.(Switcher_Base[P, R]); ok {
-		v.SwitchBase(node)
+	if v, ok := visitor.(Visitor_Base[P, R]); ok {
+		v.VisitBase(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_Base[P, R]); ok {
-		err = v.SwitchBase(node)
+	if v, ok := visitor.(VisitorE_Base[P, R]); ok {
+		err = v.VisitBase(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_Base[P, R]); ok {
-		v.SwitchBase(node, payload)
+	if v, ok := visitor.(VisitorP_Base[P, R]); ok {
+		v.VisitBase(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_Base[P, R]); ok {
-		err = v.SwitchBase(node, payload)
+	if v, ok := visitor.(VisitorPE_Base[P, R]); ok {
+		err = v.VisitBase(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_Base[P, R]); ok {
-		result = v.SwitchBase(node)
+	if v, ok := visitor.(VisitorR_Base[P, R]); ok {
+		result = v.VisitBase(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_Base[P, R]); ok {
-		result, err = v.SwitchBase(node)
+	if v, ok := visitor.(VisitorRE_Base[P, R]); ok {
+		result, err = v.VisitBase(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_Base[P, R]); ok {
-		result = v.SwitchBase(node, payload)
+	if v, ok := visitor.(VisitorPR_Base[P, R]); ok {
+		result = v.VisitBase(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_Base[P, R]); ok {
-		result, err = v.SwitchBase(node, payload)
+	if v, ok := visitor.(VisitorPRE_Base[P, R]); ok {
+		result, err = v.VisitBase(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "Base")
@@ -3067,36 +3067,36 @@ func (node *LexTerminalChar[P, R]) AcceptArg(visitor any, payload P) (result R, 
 // | "\\x" hexDigit hexDigit                    -- hexEscape
 func (node *LexEscapeChar[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "escapeChar")
-	if v, ok := visitor.(Switcher_LexEscapeChar[P, R]); ok {
-		v.SwitchLexEscapeChar(node)
+	if v, ok := visitor.(Visitor_LexEscapeChar[P, R]); ok {
+		v.VisitLexEscapeChar(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_LexEscapeChar[P, R]); ok {
-		err = v.SwitchLexEscapeChar(node)
+	if v, ok := visitor.(VisitorE_LexEscapeChar[P, R]); ok {
+		err = v.VisitLexEscapeChar(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_LexEscapeChar[P, R]); ok {
-		v.SwitchLexEscapeChar(node, payload)
+	if v, ok := visitor.(VisitorP_LexEscapeChar[P, R]); ok {
+		v.VisitLexEscapeChar(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_LexEscapeChar[P, R]); ok {
-		err = v.SwitchLexEscapeChar(node, payload)
+	if v, ok := visitor.(VisitorPE_LexEscapeChar[P, R]); ok {
+		err = v.VisitLexEscapeChar(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_LexEscapeChar[P, R]); ok {
-		result = v.SwitchLexEscapeChar(node)
+	if v, ok := visitor.(VisitorR_LexEscapeChar[P, R]); ok {
+		result = v.VisitLexEscapeChar(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_LexEscapeChar[P, R]); ok {
-		result, err = v.SwitchLexEscapeChar(node)
+	if v, ok := visitor.(VisitorRE_LexEscapeChar[P, R]); ok {
+		result, err = v.VisitLexEscapeChar(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_LexEscapeChar[P, R]); ok {
-		result = v.SwitchLexEscapeChar(node, payload)
+	if v, ok := visitor.(VisitorPR_LexEscapeChar[P, R]); ok {
+		result = v.VisitLexEscapeChar(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_LexEscapeChar[P, R]); ok {
-		result, err = v.SwitchLexEscapeChar(node, payload)
+	if v, ok := visitor.(VisitorPRE_LexEscapeChar[P, R]); ok {
+		result, err = v.VisitLexEscapeChar(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "LexEscapeChar")
@@ -4103,36 +4103,36 @@ func (node *LexSpace[P, R]) AcceptComment(visitor any, payload P) (result R, err
 // | "/*" (~"*/" any)* "*/"  -- multiLine
 func (node *LexComment[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
 	ohm.AssertName(this, "comment")
-	if v, ok := visitor.(Switcher_LexComment[P, R]); ok {
-		v.SwitchLexComment(node)
+	if v, ok := visitor.(Visitor_LexComment[P, R]); ok {
+		v.VisitLexComment(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherE_LexComment[P, R]); ok {
-		err = v.SwitchLexComment(node)
+	if v, ok := visitor.(VisitorE_LexComment[P, R]); ok {
+		err = v.VisitLexComment(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherP_LexComment[P, R]); ok {
-		v.SwitchLexComment(node, payload)
+	if v, ok := visitor.(VisitorP_LexComment[P, R]); ok {
+		v.VisitLexComment(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPE_LexComment[P, R]); ok {
-		err = v.SwitchLexComment(node, payload)
+	if v, ok := visitor.(VisitorPE_LexComment[P, R]); ok {
+		err = v.VisitLexComment(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherR_LexComment[P, R]); ok {
-		result = v.SwitchLexComment(node)
+	if v, ok := visitor.(VisitorR_LexComment[P, R]); ok {
+		result = v.VisitLexComment(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherRE_LexComment[P, R]); ok {
-		result, err = v.SwitchLexComment(node)
+	if v, ok := visitor.(VisitorRE_LexComment[P, R]); ok {
+		result, err = v.VisitLexComment(node)
 		return
 	}
-	if v, ok := visitor.(SwitcherPR_LexComment[P, R]); ok {
-		result = v.SwitchLexComment(node, payload)
+	if v, ok := visitor.(VisitorPR_LexComment[P, R]); ok {
+		result = v.VisitLexComment(node, payload)
 		return
 	}
-	if v, ok := visitor.(SwitcherPRE_LexComment[P, R]); ok {
-		result, err = v.SwitchLexComment(node, payload)
+	if v, ok := visitor.(VisitorPRE_LexComment[P, R]); ok {
+		result, err = v.VisitLexComment(node, payload)
 		return
 	}
 	ohm.TypeCheckMethod[P, R](visitor, "LexComment")

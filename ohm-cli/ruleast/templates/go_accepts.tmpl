@@ -32,17 +32,13 @@ func MakeNodeFromRoot[P, R any](root {{go_rt_pkg}}.Node) {{go_rt_pkg}}.Acceptor[
 //
 {{range ($Branch.Source|splitnl)}}{{$l := . | trim}}{{if $l}}// {{$l}}
 {{end}}{{end -}}
-{{tmpl_by_type $Rule.Branch.V "" "_AcceptWrapper"}}
+{{template "AcceptWrapper" $Rule.Branch.V}}
 
 {{tmpl_by_type $Rule.Branch.V "" "_GoAccept"}}
 {{end -}}
 {{- end -}}
 
-{{- define "VirtRuleNode_AcceptWrapper" -}}
-{{template "BareRuleNode_AcceptWrapper" . -}}
-{{- end -}}
-
-{{- define "BareRuleNode_AcceptWrapper" -}}
+{{- define "AcceptWrapper" -}}
 func (node *{{.TypeName}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
 	{{go_rt_pkg}}.AssertName(this, "{{.RuleName}}")
 	if v, ok := visitor.(Visitor_{{.TypeName}}[P, R]); ok {
@@ -75,46 +71,6 @@ func (node *{{.TypeName}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, pa
 	}
 	if v, ok := visitor.(VisitorPRE_{{.TypeName}}[P, R]); ok {
 		result, err = v.Visit{{.TypeName}}(node, payload)
-		return
-	}
-	{{go_rt_pkg}}.TypeCheckMethod[P, R](visitor, "{{.TypeName}}")
-	return node.DefaultAccept(visitor, payload)
-}
-{{- end -}}
-
-{{- define "CasesRuleNode_AcceptWrapper" -}}
-func (node *{{.TypeName}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
-	{{go_rt_pkg}}.AssertName(this, "{{.RuleName}}")
-	if v, ok := visitor.(Switcher_{{.TypeName}}[P, R]); ok {
-		v.Switch{{.TypeName}}(node)
-		return
-	}
-	if v, ok := visitor.(SwitcherE_{{.TypeName}}[P, R]); ok {
-		err = v.Switch{{.TypeName}}(node)
-		return
-	}
-	if v, ok := visitor.(SwitcherP_{{.TypeName}}[P, R]); ok {
-		v.Switch{{.TypeName}}(node, payload)
-		return
-	}
-	if v, ok := visitor.(SwitcherPE_{{.TypeName}}[P, R]); ok {
-		err = v.Switch{{.TypeName}}(node, payload)
-		return
-	}
-	if v, ok := visitor.(SwitcherR_{{.TypeName}}[P, R]); ok {
-		result = v.Switch{{.TypeName}}(node)
-		return
-	}
-	if v, ok := visitor.(SwitcherRE_{{.TypeName}}[P, R]); ok {
-		result, err = v.Switch{{.TypeName}}(node)
-		return
-	}
-	if v, ok := visitor.(SwitcherPR_{{.TypeName}}[P, R]); ok {
-		result = v.Switch{{.TypeName}}(node, payload)
-		return
-	}
-	if v, ok := visitor.(SwitcherPRE_{{.TypeName}}[P, R]); ok {
-		result, err = v.Switch{{.TypeName}}(node, payload)
 		return
 	}
 	{{go_rt_pkg}}.TypeCheckMethod[P, R](visitor, "{{.TypeName}}")
