@@ -39,54 +39,54 @@ func MakeNodeFromRoot[P, R any](root {{go_rt_pkg}}.Node) {{go_rt_pkg}}.Acceptor[
 {{- end -}}
 
 {{- define "AcceptWrapper" -}}
-func (node *{{.TypeName}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
 	{{go_rt_pkg}}.AssertName(this, "{{.RuleName}}")
-	if v, ok := visitor.(Visitor_{{.TypeName}}[P, R]); ok {
-		v.Visit{{.TypeName}}(node)
+	if v, ok := visitor.(Visitor_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		v.Visit{{tmpl_by_type . "" "_TypeName"}}(node)
 		return
 	}
-	if v, ok := visitor.(VisitorE_{{.TypeName}}[P, R]); ok {
-		err = v.Visit{{.TypeName}}(node)
+	if v, ok := visitor.(VisitorE_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		err = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node)
 		return
 	}
-	if v, ok := visitor.(VisitorP_{{.TypeName}}[P, R]); ok {
-		v.Visit{{.TypeName}}(node, payload)
+	if v, ok := visitor.(VisitorP_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		v.Visit{{tmpl_by_type . "" "_TypeName"}}(node, payload)
 		return
 	}
-	if v, ok := visitor.(VisitorPE_{{.TypeName}}[P, R]); ok {
-		err = v.Visit{{.TypeName}}(node, payload)
+	if v, ok := visitor.(VisitorPE_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		err = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node, payload)
 		return
 	}
-	if v, ok := visitor.(VisitorR_{{.TypeName}}[P, R]); ok {
-		result = v.Visit{{.TypeName}}(node)
+	if v, ok := visitor.(VisitorR_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		result = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node)
 		return
 	}
-	if v, ok := visitor.(VisitorRE_{{.TypeName}}[P, R]); ok {
-		result, err = v.Visit{{.TypeName}}(node)
+	if v, ok := visitor.(VisitorRE_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		result, err = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node)
 		return
 	}
-	if v, ok := visitor.(VisitorPR_{{.TypeName}}[P, R]); ok {
-		result = v.Visit{{.TypeName}}(node, payload)
+	if v, ok := visitor.(VisitorPR_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		result = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node, payload)
 		return
 	}
-	if v, ok := visitor.(VisitorPRE_{{.TypeName}}[P, R]); ok {
-		result, err = v.Visit{{.TypeName}}(node, payload)
+	if v, ok := visitor.(VisitorPRE_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
+		result, err = v.Visit{{tmpl_by_type . "" "_TypeName"}}(node, payload)
 		return
 	}
-	{{go_rt_pkg}}.TypeCheckMethod[P, R](visitor, "{{.TypeName}}")
+	{{go_rt_pkg}}.TypeCheckMethod[P, R](visitor, "{{tmpl_by_type . "" "_TypeName"}}")
 	return node.DefaultAccept(visitor, payload)
 }
 {{- end -}}
 
 {{/* ---------- DefaultAccept + Accept<Arg> methods ---------- */}}
 {{- define "BareRuleNode_GoAccept" -}}
-{{$TN := .TypeName -}}
-func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
+{{- $Node := . -}}
+func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
 {{range .Args}}	result, err = node.Accept{{.Name | title}}(visitor, payload)
 {{end}}	return
 }
 {{range .Args}}
-func (node *{{$TN}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
 {{$argName := .Name -}}
 {{set "argName" $argName -}}
 {{tmpl_by_type .Node.Branch.V "" "_LeafAccept"}}	return
@@ -95,13 +95,13 @@ func (node *{{$TN}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (resu
 {{- end -}}
 
 {{- define "VirtRuleNode_GoAccept" -}}
-{{$TN := .TypeName -}}
-func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
+{{- $Node := . -}}
+func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
 {{range .Node.Args}}	result, err = node.Accept{{.Name | title}}(visitor, payload)
 {{end}}	return
 }
 {{range .Node.Args}}
-func (node *{{$TN}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
 {{$argName := .Name -}}
 {{set "argName" $argName -}}
 {{tmpl_by_type .Node.Branch.V "" "_LeafAccept"}}	return
@@ -110,22 +110,21 @@ func (node *{{$TN}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (resu
 {{- end -}}
 
 {{- define "CasesRuleNode_GoAccept" -}}
-{{$TN := .TypeName -}}
 {{$RN := .RuleName -}}
-func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
+{{- $Node := . -}}
+func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
 	switch node.Node.CtorName() {
-	case "{{$TN}}":
-		return (&{{$TN}}[P, R]{
+	case "{{tmpl_by_type . "" "_TypeName"}}":
+		return (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
 			Node: node.Node.Children()[0].({{go_rt_pkg}}.RuleNode),
 		}).DefaultAccept(visitor, payload)
 {{range .Cases -}}
 {{$virt_rule_name := printf "%s_%s" $RN .Case_name -}}
-{{$virt_type_name := printf "%s%s" $TN (.Case_name | title) -}}
 {{$vbranch := ruleBranch (get "gmr") $virt_rule_name -}}
 	case "{{$virt_rule_name}}":
 		kids := node.Node.Children()
 		_ = kids // only needed in rule.Branch.V is empty
-		return (&{{$virt_type_name}}[P, R]{
+		return (&{{tmpl_by_type $Node "" "_TypeName"}}{{.Case_name | title}}[P, R]{
 {{tmpl_by_type $vbranch "" "_GoLeafInst"}}
 		}).Accept(node.Node, visitor, payload)
 {{end -}}
@@ -188,7 +187,7 @@ func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err 
 {{$argName := get "argName" -}}
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 {{if $rb}}	kids := node.{{$argName | title}}.Children()
-	result, err = (&{{$rb.TypeName}}[P, R]{
+	result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
 {{tmpl_by_type $rb "" "_GoLeafInst"}}	}).Accept(node.{{$argName | title}}, visitor, payload)
 {{else}}	// "unknown rule {{.Rule}}"
 	if v, ok := visitor.({{go_rt_pkg}}.NodeVisitor); ok {
@@ -249,7 +248,7 @@ func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err 
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 	case "{{.Rule}}":
 {{if $rb}}		kids := node.Rule.Children()
-		result, err = (&{{$rb.TypeName}}[P, R]{
+		result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
 {{tmpl_by_type $rb "" "_GoLeafInst"}}		}).Accept(node.Rule, visitor, payload)
 {{else}}		// "unknown rule {{.Rule}}"
 		if v, ok := visitor.({{go_rt_pkg}}.NodeVisitor); ok {
@@ -333,7 +332,7 @@ func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err 
 {{/* ListRuleInst: rule branch used as element of a list */}}
 {{- define "BareRuleNode_ListRuleInst" -}}
 {{"		"}}kids := n.Children()
-		result, err = (&{{.TypeName}}[P, R]{
+		result, err = (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
 {{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept(n, visitor, payload)
 {{end -}}
 {{- define "CasesRuleNode_ListRuleInst" -}}
@@ -466,10 +465,10 @@ func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err 
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 		case "{{.Rule}}":
 {{if $rb}}			kids := node.Node.Children()
-			result, err = (&{{$rb.TypeName}}[P, R]{
+			result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
 {{tmpl_by_type $rb "" "_GoLeafInst"}}			}).Accept(node.Node, visitor, payload)
 			return
-{{else}}			// "unknown rule {{.Rule}}"
+{{else}}			// "unknown rule {{.Rule}}"{{panic "not implemented"}}
 {{end}}{{end -}}
 		default:
 			panic("unexpected " + node.Node.CtorName())
@@ -535,7 +534,7 @@ func (node *{{$TN}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err 
 
 {{- define "BareRuleNode_OptRuleInst" -}}
 {{"		"}}kids := n.Children()
-		result, err = (&{{.TypeName}}[P, R]{
+		result, err = (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
 {{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept(n, visitor, payload)
 {{end -}}
 

@@ -2,21 +2,9 @@ package ruleast
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/samber/lo"
 )
-
-func upper1st(s string) string {
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-func r2name(rname string) string {
-	if rname[0] >= 'A' && rname[0] <= 'Z' {
-		return rname
-	}
-	return "Lex" + upper1st(rname)
-}
 
 func (NodeArgNode) IsNode() bool       { return true }
 func (RuleArgNode) IsNode() bool       { return false }
@@ -31,7 +19,6 @@ func (RuleArgNode) GoType(rtpkg string) string { return rtpkg + ".RuleNode" }
 func (TermArgNode) GoType(rtpkg string) string { return rtpkg + ".TerminalNode" }
 func (n ListArgNode) GoType(rtpkg string) string {
 	return rtpkg + ".ListNode"
-	// return n.Elem.GetBranch().GoType(rtpkg)
 }
 func (OptArgNode) GoType(rtpkg string) string        { return rtpkg + ".OptNode" }
 func (BuiltinHorArgNode) GoType(rtpkg string) string { return rtpkg + ".BHorNode" }
@@ -39,13 +26,7 @@ func (AltUnaryRules) GoType(rtpkg string) string     { return rtpkg + ".RuleNode
 
 type GoTypedRule interface {
 	Descr(pre, suf string) string
-	// TypeName() string
 	RuleName() string
-	// Source() []string
-	// GetArgs() []NamedArgNode
-	// GenGoTypes(vc *genTypesCmd)
-	// GenGoAccepts(vc *genAcceptsCmd, gmr_name string)
-	// GenGoLeafInstAccepts(vc *genAcceptsCmd, tabs int)
 }
 
 func (rule RuleNode) GetBranch() GoTypedRule {
@@ -80,32 +61,15 @@ func (r VirtRuleNode) Descr(pre, suf string) string {
 	return r.Node.Descr(pre, suf)
 }
 
-func (r BareRuleNode) TypeName() string  { return r2name(r.Name) }
-func (r CasesRuleNode) TypeName() string { return r2name(r.Name) }
-func (r VirtRuleNode) TypeName() string {
-	return r2name(r.Name) + upper1st(r.Node.Name)
-}
-
 func (r BareRuleNode) RuleName() string  { return r._BareRuleNode.Name }
 func (r CasesRuleNode) RuleName() string { return r._CasesRuleNode.Name }
 func (r VirtRuleNode) RuleName() string {
 	return r._Named.Name + "_" + r._Named.Node._BareRuleNode.Name
 }
 
-//	func (r BareRuleNode) Source() []string {
-//		return strings.Split(r._BareRuleNode.Source, "\n")
-//	}
-//
-//	func (r CasesRuleNode) Source() []string {
-//		return strings.Split(r._CasesRuleNode.Source, "\n")
-//	}
 func (r VirtRuleNode) Source() string {
 	return r.Node.Source
 }
-
-// func (r BareRuleNode) GetArgs() []NamedArgNode  { return r.Args }
-// func (r CasesRuleNode) GetArgs() []NamedArgNode { return r.Args }
-// func (r VirtRuleNode) GetArgs() []NamedArgNode  { return r._Named.Node.Args }
 
 type nodemeta struct {
 	type_ string

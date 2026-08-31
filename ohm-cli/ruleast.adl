@@ -96,6 +96,7 @@ union ArgNode {
     ListArgNode list;
     OptArgNode  opt;
     BuiltinHorArgNode bhor;
+    /// these are bare unary (only one term) rules, generally after cases.
     AltUnaryRules alt_rules;
 };
 

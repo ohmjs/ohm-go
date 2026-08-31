@@ -184,7 +184,7 @@ func AST_ArgNode() adlast.ScopedDecl {
 							[]adlast.TypeExpr{},
 						),
 						types.Make_Maybe_nothing[any](),
-						customtypes.MapMap[adlast.ScopedName, any]{},
+						customtypes.MapMap[adlast.ScopedName, any]{adlast.Make_ScopedName("sys.annotations", "Doc"): "these are bare unary (only one term) rules, generally after cases.\n"},
 					),
 				},
 			),

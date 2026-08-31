@@ -308,6 +308,26 @@ b @bare {
   term @term
 }
 
+-- gmr7_1.txt --
+G {
+    S =
+      | a
+      | b
+    a = "a"
+    b = "b"
+}
+-- gmr7_1.s.rule_ast --
+G
+S @bare {
+  rule @rules a b
+}
+a @bare {
+  term @term
+}
+b @bare {
+  term @term
+}
+
 -- gmr8.txt --
 G {
     S = ListOf<a, ",">
