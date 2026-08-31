@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	goohm "github.com/ohmjs/ohm-go/ohm"
+	"github.com/ohmjs/ohm-go/ohm"
 )
 
 type es5roundtrip struct {
@@ -31,10 +31,10 @@ func NewEs5Roundtrip() *es5roundtrip {
 func (cm *es5roundtrip) Run() error {
 	ctx := context.Background()
 	var (
-		gmr  *goohm.Grammar
-		mr   *goohm.MatchResult
+		gmr  *ohm.Grammar
+		mr   *ohm.MatchResult
 		err  error
-		root goohm.Node
+		root ohm.Node
 	)
 	if len(cm.Source) > 1 && cm.Source[:1] == "@" {
 		barr, err := os.ReadFile(cm.Source[1:])
@@ -43,7 +43,7 @@ func (cm *es5roundtrip) Run() error {
 		}
 		cm.Source = string(barr)
 	}
-	if gmr, err = goohm.NewGrammar(ctx, es5GrammarWasmBytes); err != nil {
+	if gmr, err = ohm.NewGrammar(ctx, es5GrammarWasmBytes); err != nil {
 		return fmt.Errorf("creating grammar: %[1]v", err)
 	}
 	defer gmr.Close()
@@ -67,9 +67,9 @@ func (cm *es5roundtrip) Run() error {
 }
 
 var (
-	_ goohm.TerminalVisitor    = &es5roundtrip{}
-	_ goohm.NodeVisitor        = &es5roundtrip{}
-	_ goohm.SpaceBeforeVisitor = &es5roundtrip{}
+	_ ohm.TerminalVisitor    = &es5roundtrip{}
+	_ ohm.NodeVisitor        = &es5roundtrip{}
+	_ ohm.SpaceBeforeVisitor = &es5roundtrip{}
 )
 
 // SpaceBefore implements [goohm.SpaceBeforeVisitor].
@@ -79,12 +79,12 @@ func (cm *es5roundtrip) SpaceBefore(spaces string) {
 }
 
 // Terminal implements [goohm.TerminalVisitor].
-func (cm *es5roundtrip) Terminal(node goohm.TerminalNode) {
+func (cm *es5roundtrip) Terminal(node ohm.TerminalNode) {
 	cm.sb.WriteString(node.SourceString())
 }
 
 // NodeVisit implements [goohm.NodeVisitor].
-func (cm *es5roundtrip) NodeVisit(node goohm.Node) {
+func (cm *es5roundtrip) NodeVisit(node ohm.Node) {
 	cm.sb.WriteString(node.SourceString())
 	// cm.sb.WriteString(node.CtorName())
 	// cm.sb.WriteString("\n")

@@ -159,18 +159,19 @@ ohm-cli --uninstall  # remove zsh, bash or fish completion
 
 <!-- This is current just a placeholder for commands useful for doing dev. -->
 
-```
+```sh
 go install
-ohm-cli generate go --skip-type-check-method --go-type-package ruleast --file-prefix ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
-ohm-cli generate go --skip-type-check-method --grammar-name ES5 --hand-coded-walk @../../examples/ecmascript/src/es5.ohm
+ohm-cli generate go -P ruleast -f ohm_ @../ohm-repo/packages/ohm-js/src/ohm-grammar.ohm
 
-go install && ohm-cli generate go -P ruleast -f ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
-go install && ohm-cli generate go --grammar-name  ES5 @../../examples/ecmascript/src/es5.ohm
+ohm-cli generate parts go_types -P ruleast -o ruleast/ohm_types.go @../ohm-repo/packages/ohm-js/src/ohm-grammar.ohm
 
-go install && ohm-cli generate parts go_types -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
+# es5
+ohm-cli generate go --grammar-name  ES5 @../ohm-repo/examples/ecmascript/src/es5.ohm
+ohm-cli generate go --skip-type-check-method --grammar-name ES5 --hand-coded-walk @../ohm-repo/examples/ecmascript/src/es5.ohm
+ohm-cli es5_roundtrip "function x(){}"
 ```
 
-```
+```sh
 # genvisitor.adl -> golang
 ./genadl.sh
 
