@@ -17,13 +17,13 @@ my-grammar.ohm  →  (docker compile)  →  my-grammar.wasm  →  embedded in Go
 ## Installation
 
 ```bash
-go install github.com/ohmjs/ohm-cli@latest
+go install github.com/ohmjs/ohm-go/ohm-cli@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/ohmjs/ohm-cli
+git clone https://github.com/ohmjs/ohm-go/ohm-cli
 cd ohm-cli
 go build -o ohm-cli .
 ```
@@ -167,41 +167,13 @@ ohm-cli generate go --skip-type-check-method --grammar-name ES5 --hand-coded-wal
 go install && ohm-cli generate go -P ruleast -f ohm_ @../../packages/ohm-js/src/ohm-grammar.ohm
 go install && ohm-cli generate go --grammar-name  ES5 @../../examples/ecmascript/src/es5.ohm
 
-go install && ohm-cli generate parts go_types_tmpl -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
+go install && ohm-cli generate parts go_types -P ruleast -o ruleast/ohm_types.go @../../packages/ohm-js/src/ohm-grammar.ohm
 ```
 
 ```
-# ohm_model.adl -> golang
-cd genvisitor
-./genadl.sh
-cd ..
-
 # genvisitor.adl -> golang
 ./genadl.sh
 
-# manual AST -> AST which will be the output of collect
-go install && ohm-cli o2o | jq '.' > genvisitor/ohm.json
-
-# generate visitor from code in genvisitor/genvisitor_fn.go
-go install && ohm-cli generate visitor2 ../../packages/ohm-js/src/ohm-grammar.ohm  > genvisitor/gen2/ohmgrammar/visitor.go
-
 # testing collector
-go install && ohm-cli collect_visitor_ast ../../packages/ohm-js/src/ohm-grammar.ohm  | jq '.'
-
-# test visitor walk
-go install && ohm-cli exec ../../packages/ohm-js/src/ohm-grammar.ohm
-
-# generate sexpr
-go install && ohm-cli to_sexpr -S -t ../../packages/ohm-js/src/ohm-grammar.ohm > ohm-grammar.sexpr
-
-go install && ohm-cli test_gmrs  --re-match-test . tests/ruleast_01.txtar
-
-go install && ohm-cli generate types2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/types.go
-go install && ohm-cli generate interfaces2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/interfaces.go
-go install && ohm-cli generate accepts2 -o - @../../packages/ohm-js/src/ohm-grammar.ohm > ohm_gen1/accepts.go
-
-go install && ohm-cli generate types2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/types.go
-go install && ohm-cli generate interfaces2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/interfaces.go
-go install && ohm-cli generate accepts2 -o - @../../packages/ohm-js/test/arithmetic.ohm > arithmetic/accepts.go
-
+go install && ohm-cli test txtar tests/*.txtar
 ```
