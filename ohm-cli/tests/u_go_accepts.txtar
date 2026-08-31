@@ -22,18 +22,18 @@ var GrammarMetada map[string]string = map[string]string{
 
 // accepts for grammar G
 // TODO for grammar G, implement Make func for starting rule S
-func MakeNodeFromRoot[P, R any](root goohm.Node) goohm.Acceptor[P, R] {
+func MakeNodeFromRoot[P, R any](root ohm.Node) ohm.Acceptor[P, R] {
 	kids := root.Children()
 	return &S[P, R]{
-		A: kids[0].(goohm.RuleNode),
+		A: kids[0].(ohm.RuleNode),
 	}
 }
 
 // Accept implementation for S
 //
 // S = A
-func (node *S[P, R]) Accept(this goohm.Node, visitor any, payload P) (result R, err error) {
-	goohm.AssertName(this, "S")
+func (node *S[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
+	ohm.AssertName(this, "S")
 	if v, ok := visitor.(Visitor_S[P, R]); ok {
 		v.VisitS(node)
 		return
@@ -66,7 +66,7 @@ func (node *S[P, R]) Accept(this goohm.Node, visitor any, payload P) (result R, 
 		result, err = v.VisitS(node, payload)
 		return
 	}
-	goohm.TypeCheckMethod[P, R](visitor, "S")
+	ohm.TypeCheckMethod[P, R](visitor, "S")
 	return node.DefaultAccept(visitor, payload)
 }
 
@@ -79,7 +79,7 @@ func (node *S[P, R]) AcceptA(visitor any, payload P) (result R, err error) {
 	// Rule
 	kids := node.A.Children()
 	result, err = (&A[P, R]{
-		Term: kids[0].(goohm.TerminalNode),
+		Term: kids[0].(ohm.TerminalNode),
 	}).Accept(node.A, visitor, payload)
 	return
 }
@@ -87,8 +87,8 @@ func (node *S[P, R]) AcceptA(visitor any, payload P) (result R, err error) {
 // Accept implementation for A
 //
 // A = "a"
-func (node *A[P, R]) Accept(this goohm.Node, visitor any, payload P) (result R, err error) {
-	goohm.AssertName(this, "A")
+func (node *A[P, R]) Accept(this ohm.Node, visitor any, payload P) (result R, err error) {
+	ohm.AssertName(this, "A")
 	if v, ok := visitor.(Visitor_A[P, R]); ok {
 		v.VisitA(node)
 		return
@@ -121,7 +121,7 @@ func (node *A[P, R]) Accept(this goohm.Node, visitor any, payload P) (result R, 
 		result, err = v.VisitA(node, payload)
 		return
 	}
-	goohm.TypeCheckMethod[P, R](visitor, "A")
+	ohm.TypeCheckMethod[P, R](visitor, "A")
 	return node.DefaultAccept(visitor, payload)
 }
 
@@ -132,7 +132,7 @@ func (node *A[P, R]) DefaultAccept(visitor any, payload P) (result R, err error)
 
 func (node *A[P, R]) AcceptTerm(visitor any, payload P) (result R, err error) {
 	// Term
-	if v, ok := visitor.(goohm.TerminalVisitor); ok {
+	if v, ok := visitor.(ohm.TerminalVisitor); ok {
 		v.Terminal(node.Term)
 	}
 	return
