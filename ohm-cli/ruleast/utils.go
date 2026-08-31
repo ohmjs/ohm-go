@@ -18,14 +18,6 @@ func r2name(rname string) string {
 	return "Lex" + upper1st(rname)
 }
 
-// type GoTyped interface {
-// 	GoType(rtpkg string) string
-// 	GenGoLeafAccepts(vc *genAcceptsCmd, gmr_name string, name string)
-// 	GenGoBHORCallback(vc *genAcceptsCmd, gmr_name string, fname string)
-// 	GenGoRuleNodeCaseAccepts(vc *genAcceptsCmd, gmr_name string, name string)
-// 	GenGoListArgNodeAccept(vc *genAcceptsCmd, gmr_name string, name string)
-// }
-
 func (NodeArgNode) IsNode() bool       { return true }
 func (RuleArgNode) IsNode() bool       { return false }
 func (TermArgNode) IsNode() bool       { return false }
@@ -44,20 +36,6 @@ func (n ListArgNode) GoType(rtpkg string) string {
 func (OptArgNode) GoType(rtpkg string) string        { return rtpkg + ".OptNode" }
 func (BuiltinHorArgNode) GoType(rtpkg string) string { return rtpkg + ".BHorNode" }
 func (AltUnaryRules) GoType(rtpkg string) string     { return rtpkg + ".RuleNode" }
-
-// func (v ArgNode) GetBranch() GoTyped {
-// 	return Handle_ArgNode[GoTyped](
-// 		v,
-// 		func(n NodeArgNode) GoTyped { return NodeArgNode{n._NodeArgNode} },
-// 		func(n RuleArgNode) GoTyped { return RuleArgNode{n._RuleArgNode} },
-// 		func(n TermArgNode) GoTyped { return TermArgNode{n._TermArgNode} },
-// 		func(n ListArgNode) GoTyped { return ListArgNode{n._ListArgNode} },
-// 		func(n OptArgNode) GoTyped { return OptArgNode{n._OptArgNode} },
-// 		func(n BuiltinHorArgNode) GoTyped { return BuiltinHorArgNode{n._BuiltinHorArgNode} },
-// 		func(n AltUnaryRules) GoTyped { return AltUnaryRules{n._AltUnaryRules} },
-// 		nil,
-// 	)
-// }
 
 type GoTypedRule interface {
 	Descr(pre, suf string) string
