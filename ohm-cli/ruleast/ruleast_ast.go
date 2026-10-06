@@ -2,10 +2,10 @@
 package ruleast
 
 import (
-	goadl "github.com/adl-lang/goadl_rt/v3"
-	"github.com/adl-lang/goadl_rt/v3/customtypes"
-	"github.com/adl-lang/goadl_rt/v3/sys/adlast"
-	"github.com/adl-lang/goadl_rt/v3/sys/types"
+	goadl "github.com/adl-lang/adl-go/adl"
+	"github.com/adl-lang/adl-go/adl/customtypes"
+	"github.com/adl-lang/adl-go/adl/sys/adlast"
+	"github.com/adl-lang/adl-go/adl/sys/types"
 )
 
 func Texpr_AltUnaryRules() adlast.ATypeExpr[AltUnaryRules] {
