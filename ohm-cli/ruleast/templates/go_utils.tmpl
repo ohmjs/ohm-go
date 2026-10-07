@@ -1,0 +1,11 @@
+{{- define "BareRuleNode_TypeName"}}{{.Name|rulename}}{{- end -}}
+{{- define "CasesRuleNode_TypeName"}}{{.Name|rulename}}{{- end -}}
+{{- define "VirtRuleNode_TypeName"}}{{.Name|rulename}}{{.Node.Name|title}}{{- end -}}
+
+{{- define "NodeArgNode_GoType" -}}{{go_rt_pkg}}.Node{{- end -}}
+{{- define "RuleArgNode_GoType" -}}{{go_rt_pkg}}.RuleNode{{- end -}}
+{{- define "TermArgNode_GoType" -}}{{go_rt_pkg}}.TerminalNode{{- end -}}
+{{- define "ListArgNode_GoType" -}}{{go_rt_pkg}}.ListNode{{- end -}}
+{{- define "OptArgNode_GoType" -}}{{go_rt_pkg}}.OptNode{{- end -}}
+{{- define "BuiltinHorArgNode_GoType" -}}{{go_rt_pkg}}.BHorNode{{- end -}}
+{{- define "AltUnaryRules_GoType" -}}{{go_rt_pkg}}.RuleNode{{- end -}}

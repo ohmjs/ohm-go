@@ -1,0 +1,25 @@
+Arithmetic {
+  Exp
+    = AddExp
+
+  AddExp
+    = AddExp "+" MulExp  -- plus
+    | AddExp "-" MulExp  -- minus
+    | MulExp
+
+  MulExp
+    = MulExp "*" PriExp  -- times
+    | MulExp "/" PriExp  -- divide
+    | PriExp
+
+  PriExp
+    = "(" Exp ")"  -- paren
+    | ident
+    | number
+
+  ident  (an identifier)
+    = letter alnum*
+
+  number  (a number)
+    = digit+
+}
