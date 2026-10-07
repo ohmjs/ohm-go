@@ -146,6 +146,26 @@ func main() {
 }
 ```
 
+## Generating Go visitors
+
+`generate go` turns a grammar into a Go package of node structs, visitor
+interfaces and `Accept` methods, so a visitor can be written against the
+rules of the grammar rather than the raw CST. The shapes it generates, and
+how to write a visitor against them, are described in
+[docs/visitors.md](docs/visitors.md).
+
+```sh
+ohm-cli generate go -P tree_visitor @tree.ohm
+ohm-cli generate go --generic-methods -P tree_visitor @tree.ohm   # Go 1.27 generic methods
+```
+
+With `--generic-methods` the node structs have no type parameters; instead
+`Accept[P, R any]`, `DefaultAccept[P, R any]` and the `Accept<Arg>[P, R any]`
+helpers carry them, and `MakeNodeFromRoot` returns an `ohm.AcceptorFunc`.
+One node value can then be visited with different payload and result types.
+See [examples/generic-methods](../examples/generic-methods) for a worked
+example.
+
 ## Shell Completion
 
 Install or remove zsh, bash or fish completion:
@@ -164,6 +184,9 @@ go install
 ohm-cli generate go -P ruleast -f ohm_ @../ohm-repo/packages/ohm-js/src/ohm-grammar.ohm
 
 ohm-cli generate parts go_types -P ruleast -o ruleast/ohm_types.go @../ohm-repo/packages/ohm-js/src/ohm-grammar.ohm
+
+# generic methods flavour (go 1.27)
+ohm-cli generate go --generic-methods -P ruleast -f ohm_ @../ohm-repo/packages/ohm-js/src/ohm-grammar.ohm
 
 # es5
 ohm-cli generate go --grammar-name  ES5 @../ohm-repo/examples/ecmascript/src/es5.ohm

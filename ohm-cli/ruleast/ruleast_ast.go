@@ -632,6 +632,18 @@ func AST_GoTarget() adlast.ScopedDecl {
 						customtypes.MapMap[adlast.ScopedName, any]{},
 					),
 					adlast.MakeAll_Field(
+						"GenericMethods",
+						"GenericMethods",
+						adlast.MakeAll_TypeExpr(
+							adlast.Make_TypeRef_primitive(
+								"Bool",
+							),
+							[]adlast.TypeExpr{},
+						),
+						types.Make_Maybe_nothing[any](),
+						customtypes.MapMap[adlast.ScopedName, any]{},
+					),
+					adlast.MakeAll_Field(
 						"GrammarNode",
 						"GrammarNode",
 						adlast.MakeAll_TypeExpr(

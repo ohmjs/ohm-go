@@ -19,7 +19,7 @@ var (
 	tmpls embed.FS
 )
 
-type genTmplCmd struct {
+type GenTmplCmd struct {
 	GenCmd     genCmd `opts:"mode=embedded"`
 	NoGenerics bool   `opts:"short=g" help:"Do not generate generic types (ie with [P any, R any])"`
 	Template   string `help:"valid options are GoTypes|GoInterfaces|GoAccepts"`
@@ -35,8 +35,8 @@ type genTmplCmd struct {
 	sbldr *strings.Builder
 }
 
-func NewGenInterfaceCmd() any {
-	vc := &genTmplCmd{
+func NewGenInterfaceCmd() *GenTmplCmd {
+	vc := &GenTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
 			GoRuntimePackage: "ohm",
@@ -52,8 +52,8 @@ func NewGenInterfaceCmd() any {
 	return vc
 }
 
-func NewGenAcceptsCmd() *genTmplCmd {
-	vc := &genTmplCmd{
+func NewGenAcceptsCmd() *GenTmplCmd {
+	vc := &GenTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
 			GoRuntimePackage: "ohm",
@@ -69,8 +69,8 @@ func NewGenAcceptsCmd() *genTmplCmd {
 	return vc
 }
 
-func NewGenTypesCmd() any {
-	vc := &genTmplCmd{
+func NewGenTypesCmd() *GenTmplCmd {
+	vc := &GenTmplCmd{
 		GenCmd: genCmd{
 			GoRuntimeImport:  "github.com/ohmjs/ohm-go/ohm",
 			GoRuntimePackage: "ohm",
@@ -86,7 +86,7 @@ func NewGenTypesCmd() any {
 	return vc
 }
 
-func (vc *genTmplCmd) Cli(prefix string) {
+func (vc *GenTmplCmd) Cli(prefix string) {
 	sb := strings.Builder{}
 	sb.WriteString(prefix)
 	vc.GenCmd.Cli(&sb)
@@ -106,7 +106,7 @@ func (vc *genTmplCmd) Cli(prefix string) {
 	vc.cli = sb.String()
 }
 
-func (vc *genTmplCmd) Run() error {
+func (vc *GenTmplCmd) Run() error {
 	if vc.GenCmd.Grammar[:1] == "@" {
 		barr, err := os.ReadFile(vc.GenCmd.Grammar[1:])
 		if err != nil {
@@ -135,7 +135,7 @@ func (vc *genTmplCmd) Run() error {
 	return nil
 }
 
-func (vc *genTmplCmd) Process() (string, error) {
+func (vc *GenTmplCmd) Process() (string, error) {
 	if vc.ExcludeCli {
 		vc.cli = ""
 	}
@@ -196,7 +196,7 @@ func (vc *genTmplCmd) Process() (string, error) {
 	return string(out), nil
 }
 
-func (gmrs GrammarsNode) GenGoTypes2(vc *genTmplCmd) error {
+func (gmrs GrammarsNode) GenGoTypes2(vc *GenTmplCmd) error {
 	var gname string
 	if vc.GenCmd.GrammarName != "" {
 		gname = vc.GenCmd.GrammarName
@@ -212,9 +212,54 @@ func (gmrs GrammarsNode) GenGoTypes2(vc *genTmplCmd) error {
 	// 	fmt.Fprintf(os.Stderr, "!!%s\n", path)
 	// 	return nil
 	// })
+	data := Make_GoTarget(
+		vc.GenCmd.GoTypePackage,
+		vc.GenCmd.GoRuntimeImport,
+		vc.GenCmd.GoRuntimePackage,
+		!vc.NoGenerics,
+		vc.GenCmd.GenericMethods,
+		gmrNode,
+		vc.cli,
+	)
 	global := map[string]any{}
 	tmpl := template.Must(template.New("gen", template.WithDynamicScopedVars()).
 		Funcs(template.FuncMap{
+			// generic_methods reports whether --generic-methods is set. The
+			// four *_tp funcs below emit the type-parameter text for the two
+			// flavours so the templates need no conditionals:
+			//
+			//                 struct generics      generic methods
+			//  struct_tp       [P, R]               ""
+			//  struct_tp_decl  [P, R any]           ""
+			//  method_tp       ""                   [P, R]
+			//  method_tp_decl  ""                   [P, R any]
+			"generic_methods": func() bool {
+				return data.GenericMethods
+			},
+			"struct_tp": func() string {
+				if data.GenericMethods {
+					return ""
+				}
+				return "[P, R]"
+			},
+			"struct_tp_decl": func() string {
+				if data.GenericMethods || !data.Generics {
+					return ""
+				}
+				return "[P, R any]"
+			},
+			"method_tp": func() string {
+				if data.GenericMethods {
+					return "[P, R]"
+				}
+				return ""
+			},
+			"method_tp_decl": func() string {
+				if data.GenericMethods {
+					return "[P, R any]"
+				}
+				return ""
+			},
 			"set": func(k string, v any) {
 				global[k] = v
 			},
@@ -254,14 +299,6 @@ func (gmrs GrammarsNode) GenGoTypes2(vc *genTmplCmd) error {
 	if vc.GenCmd.SuffixOutfLineNos {
 		tmpl.SuffixLineNos("", 0, "", "")
 	}
-	data := Make_GoTarget(
-		vc.GenCmd.GoTypePackage,
-		vc.GenCmd.GoRuntimeImport,
-		vc.GenCmd.GoRuntimePackage,
-		!vc.NoGenerics,
-		gmrNode,
-		vc.cli,
-	)
 	err := tmpl.ExecuteTemplate(vc.sbldr, vc.Template, data)
 	if err != nil {
 		return err

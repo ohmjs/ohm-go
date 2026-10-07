@@ -18,11 +18,19 @@ var GrammarMetada map[string]string = map[string]string{
 {{$StartRule := index .GrammarNode.Rules (index .GrammarNode.Rule_names 0) -}}
 {{$StartBranch := $StartRule.Branch.V -}}
 // TODO for grammar {{.GrammarNode.Name}}, implement Make func for starting rule {{index .GrammarNode.Rule_names 0}}
+{{- if generic_methods}}
+func MakeNodeFromRoot[P, R any](root {{go_rt_pkg}}.Node) {{go_rt_pkg}}.AcceptorFunc[P, R] {
+	kids := root.Children()
+	return (&{{index .GrammarNode.Rule_names 0}}{
+{{tmpl_by_type $StartBranch "" "_GoLeafInst"}}	}).Accept
+}
+{{- else}}
 func MakeNodeFromRoot[P, R any](root {{go_rt_pkg}}.Node) {{go_rt_pkg}}.Acceptor[P, R] {
 	kids := root.Children()
-	return &{{index .GrammarNode.Rule_names 0}}[P, R]{
+	return &{{index .GrammarNode.Rule_names 0}}{{struct_tp}}{
 {{tmpl_by_type $StartBranch "" "_GoLeafInst"}}	}
 }
+{{- end}}
 
 {{$GMR := .GrammarNode -}}
 {{range .GrammarNode.Rule_names -}}
@@ -39,7 +47,7 @@ func MakeNodeFromRoot[P, R any](root {{go_rt_pkg}}.Node) {{go_rt_pkg}}.Acceptor[
 {{- end -}}
 
 {{- define "AcceptWrapper" -}}
-func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) Accept(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}) Accept{{method_tp_decl}}(this {{go_rt_pkg}}.Node, visitor any, payload P) (result R, err error) {
 	{{go_rt_pkg}}.AssertName(this, "{{.RuleName}}")
 	if v, ok := visitor.(Visitor_{{tmpl_by_type . "" "_TypeName"}}[P, R]); ok {
 		v.Visit{{tmpl_by_type . "" "_TypeName"}}(node)
@@ -74,19 +82,19 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) Accept(this {{go_rt_pkg}}.N
 		return
 	}
 	{{go_rt_pkg}}.TypeCheckMethod[P, R](visitor, "{{tmpl_by_type . "" "_TypeName"}}")
-	return node.DefaultAccept(visitor, payload)
+	return node.DefaultAccept{{method_tp}}(visitor, payload)
 }
 {{- end -}}
 
 {{/* ---------- DefaultAccept + Accept<Arg> methods ---------- */}}
 {{- define "BareRuleNode_GoAccept" -}}
 {{- $Node := . -}}
-func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
-{{range .Args}}	result, err = node.Accept{{.Name | title}}(visitor, payload)
+func (node *{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}) DefaultAccept{{method_tp_decl}}(visitor any, payload P) (result R, err error) {
+{{range .Args}}	result, err = node.Accept{{.Name | title}}{{method_tp}}(visitor, payload)
 {{end}}	return
 }
 {{range .Args}}
-func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type $Node "" "_TypeName"}}{{struct_tp}}) Accept{{.Name | title}}{{method_tp_decl}}(visitor any, payload P) (result R, err error) {
 {{$argName := .Name -}}
 {{set "argName" $argName -}}
 {{tmpl_by_type .Node.Branch.V "" "_LeafAccept"}}	return
@@ -96,12 +104,12 @@ func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}
 
 {{- define "VirtRuleNode_GoAccept" -}}
 {{- $Node := . -}}
-func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
-{{range .Node.Args}}	result, err = node.Accept{{.Name | title}}(visitor, payload)
+func (node *{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}) DefaultAccept{{method_tp_decl}}(visitor any, payload P) (result R, err error) {
+{{range .Node.Args}}	result, err = node.Accept{{.Name | title}}{{method_tp}}(visitor, payload)
 {{end}}	return
 }
 {{range .Node.Args}}
-func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}(visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type $Node "" "_TypeName"}}{{struct_tp}}) Accept{{.Name | title}}{{method_tp_decl}}(visitor any, payload P) (result R, err error) {
 {{$argName := .Name -}}
 {{set "argName" $argName -}}
 {{tmpl_by_type .Node.Branch.V "" "_LeafAccept"}}	return
@@ -112,21 +120,21 @@ func (node *{{tmpl_by_type $Node "" "_TypeName"}}[P, R]) Accept{{.Name | title}}
 {{- define "CasesRuleNode_GoAccept" -}}
 {{$RN := .RuleName -}}
 {{- $Node := . -}}
-func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, payload P) (result R, err error) {
+func (node *{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}) DefaultAccept{{method_tp_decl}}(visitor any, payload P) (result R, err error) {
 	switch node.Node.CtorName() {
 	case "{{tmpl_by_type . "" "_TypeName"}}":
-		return (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
+		return (&{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}{
 			Node: node.Node.Children()[0].({{go_rt_pkg}}.RuleNode),
-		}).DefaultAccept(visitor, payload)
+		}).DefaultAccept{{method_tp}}(visitor, payload)
 {{range .Cases -}}
 {{$virt_rule_name := printf "%s_%s" $RN .Case_name -}}
 {{$vbranch := ruleBranch (get "gmr") $virt_rule_name -}}
 	case "{{$virt_rule_name}}":
 		kids := node.Node.Children()
 		_ = kids // only needed in rule.Branch.V is empty
-		return (&{{tmpl_by_type $Node "" "_TypeName"}}{{.Case_name | title}}[P, R]{
+		return (&{{tmpl_by_type $Node "" "_TypeName"}}{{.Case_name | title}}{{struct_tp}}{
 {{tmpl_by_type $vbranch "" "_GoLeafInst"}}
-		}).Accept(node.Node, visitor, payload)
+		}).Accept{{method_tp}}(node.Node, visitor, payload)
 {{end -}}
 {{if eq (len .Args) 0}}	default:
 		panic("unexpected " + node.Node.CtorName())
@@ -187,8 +195,8 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{$argName := get "argName" -}}
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 {{if $rb}}	kids := node.{{$argName | title}}.Children()
-	result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
-{{tmpl_by_type $rb "" "_GoLeafInst"}}	}).Accept(node.{{$argName | title}}, visitor, payload)
+	result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}{{struct_tp}}{
+{{tmpl_by_type $rb "" "_GoLeafInst"}}	}).Accept{{method_tp}}(node.{{$argName | title}}, visitor, payload)
 {{else}}	// "unknown rule {{.Rule}}"
 	if v, ok := visitor.({{go_rt_pkg}}.NodeVisitor); ok {
 		v.NodeVisit(node.{{$argName | title}})
@@ -248,8 +256,8 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 	case "{{.Rule}}":
 {{if $rb}}		kids := node.Rule.Children()
-		result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
-{{tmpl_by_type $rb "" "_GoLeafInst"}}		}).Accept(node.Rule, visitor, payload)
+		result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}{{struct_tp}}{
+{{tmpl_by_type $rb "" "_GoLeafInst"}}		}).Accept{{method_tp}}(node.Rule, visitor, payload)
 {{else}}		// "unknown rule {{.Rule}}"
 		if v, ok := visitor.({{go_rt_pkg}}.NodeVisitor); ok {
 			v.NodeVisit(node.{{$argName | title}})
@@ -332,13 +340,13 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{/* ListRuleInst: rule branch used as element of a list */}}
 {{- define "BareRuleNode_ListRuleInst" -}}
 {{"		"}}kids := n.Children()
-		result, err = (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
-{{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept(n, visitor, payload)
+		result, err = (&{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}{
+{{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept{{method_tp}}(n, visitor, payload)
 {{end -}}
 {{- define "CasesRuleNode_ListRuleInst" -}}
-		result, err = (&{{.Name | title}}[P, R]{
+		result, err = (&{{.Name | title}}{{struct_tp}}{
 			Node: n,
-		}).Accept(n, visitor, payload)
+		}).Accept{{method_tp}}(n, visitor, payload)
 {{end -}}
 
 {{/* ---------- BuiltinHOR callbacks ---------- */}}
@@ -369,9 +377,9 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 {{if $rb}}	{{get "fname"}} := func(n {{go_rt_pkg}}.Node) (result R) {
 		kids := n.Children()
-		result, err = (&{{rulename .Rule}}[P, R]{
+		result, err = (&{{rulename .Rule}}{{struct_tp}}{
 {{tmpl_by_type $rb "" "_GoLeafInst" -}}
-		}).Accept(n, visitor, payload)
+		}).Accept{{method_tp}}(n, visitor, payload)
 		return
 	}
 {{else}}
@@ -452,8 +460,8 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{$rb := ruleBranch (get "gmr") $argName -}}
 {{if not $rb}}		// unknown rule '{{$argName}}'
 {{else}}		kids := node.Node.Children()
-		return (&{{rulename $argName}}[P, R]{
-{{tmpl_by_type $rb "" "_GoLeafInst"}}		}).Accept(node.Node, visitor, payload)
+		return (&{{rulename $argName}}{{struct_tp}}{
+{{tmpl_by_type $rb "" "_GoLeafInst"}}		}).Accept{{method_tp}}(node.Node, visitor, payload)
 {{end -}}
 {{- end -}}
 
@@ -465,8 +473,8 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 {{$rb := ruleBranch (get "gmr") .Rule -}}
 		case "{{.Rule}}":
 {{if $rb}}			kids := node.Node.Children()
-			result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}[P, R]{
-{{tmpl_by_type $rb "" "_GoLeafInst"}}			}).Accept(node.Node, visitor, payload)
+			result, err = (&{{tmpl_by_type $rb "" "_TypeName"}}{{struct_tp}}{
+{{tmpl_by_type $rb "" "_GoLeafInst"}}			}).Accept{{method_tp}}(node.Node, visitor, payload)
 			return
 {{else}}			// "unknown rule {{.Rule}}"{{panic "not implemented"}}
 {{end}}{{end -}}
@@ -534,12 +542,12 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}[P, R]) DefaultAccept(visitor any, 
 
 {{- define "BareRuleNode_OptRuleInst" -}}
 {{"		"}}kids := n.Children()
-		result, err = (&{{tmpl_by_type . "" "_TypeName"}}[P, R]{
-{{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept(n, visitor, payload)
+		result, err = (&{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}{
+{{tmpl_by_type . "" "_GoLeafInst"}}		}).Accept{{method_tp}}(n, visitor, payload)
 {{end -}}
 
 {{- define "CasesRuleNode_OptRuleInst" -}}
-		result, err = (&{{.Name | title}}[P, R]{
+		result, err = (&{{.Name | title}}{{struct_tp}}{
 			Node: n,
-		}).Accept(n, visitor, payload)
+		}).Accept{{method_tp}}(n, visitor, payload)
 {{end -}}

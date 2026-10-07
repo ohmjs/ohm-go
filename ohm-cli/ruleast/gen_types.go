@@ -12,6 +12,7 @@ type genCmd struct {
 	GoRuntimePackage  string
 	SuffixOutfLineNos bool `opts:"short=l"`
 	HandCodedWalk     bool `opts:"short=H" help:"if set, use the hand coded walk. Default is to use the visitors. Useful for benchmarking the difference."`
+	GenericMethods    bool `opts:"short=m" help:"Generate Go 1.27 generic methods. Node structs have no type parameters; Accept[P, R any], DefaultAccept[P, R any] and Accept<Arg>[P, R any] carry them instead, and MakeNodeFromRoot returns an ohm.AcceptorFunc[P, R]. Requires go 1.27."`
 
 	// sbldr *strings.Builder
 }
@@ -38,6 +39,9 @@ func (vc genCmd) Cli(sb *strings.Builder) {
 	}
 	if vc.HandCodedWalk {
 		sb.WriteString(" \\\n --hand-coded-walk")
+	}
+	if vc.GenericMethods {
+		sb.WriteString(" \\\n --generic-methods")
 	}
 }
 

@@ -1,6 +1,6 @@
 module github.com/ohmjs/ohmgo-examples
 
-go 1.26.4
+go 1.27.1
 
 require github.com/ohmjs/ohm-go/ohm v0.0.1
 

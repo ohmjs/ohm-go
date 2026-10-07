@@ -25,81 +25,81 @@ package {{.GoTypePackage}}
 
 {{- define "VirtRuleNode_GoInterface" -}}
 type Visitor_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R])
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}})
 }
 type VisitorE_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R]) error
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}) error
 }
 type VisitorP_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R], payload P)
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}, payload P)
 }
 type VisitorPE_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R], payload P) error
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}, payload P) error
 }
 type VisitorR_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R]) (result R)
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}) (result R)
 }
 type VisitorRE_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R]) (result R, err error)
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}) (result R, err error)
 }
 type VisitorPR_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R], payload P) (result R)
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}, payload P) (result R)
 }
 type VisitorPRE_{{.Name|rulename}}{{.Node.Name|title}}[P, R any] interface {
-	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}[P, R], payload P) (result R, err error)
+	Visit{{.Name|rulename}}{{.Node.Name|title}}(node *{{.Name|rulename}}{{.Node.Name|title}}{{struct_tp}}, payload P) (result R, err error)
 }
 {{- end -}}
 
 {{- define "BareRuleNode_GoInterface" -}}
 type Visitor_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R])
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}})
 }
 type VisitorE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) error
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) error
 }
 type VisitorP_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P)
 }
 type VisitorPE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) error
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) error
 }
 type VisitorR_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) (result R)
 }
 type VisitorRE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R, err error)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) (result R, err error)
 }
 type VisitorPR_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) (result R)
 }
 type VisitorPRE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R, err error)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) (result R, err error)
 }
 {{- end -}}
 
 {{- define "CasesRuleNode_GoInterface" -}}
 type Visitor_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R])
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}})
 }
 type VisitorE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) error
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) error
 }
 type VisitorP_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P)
 }
 type VisitorPE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) error
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) error
 }
 type VisitorR_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) (result R)
 }
 type VisitorRE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R]) (result R, err error)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}) (result R, err error)
 }
 type VisitorPR_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) (result R)
 }
 type VisitorPRE_{{.Name|rulename}}[P, R any] interface {
-	Visit{{.Name|rulename}}(node *{{.Name|rulename}}[P, R], payload P) (result R, err error)
+	Visit{{.Name|rulename}}(node *{{.Name|rulename}}{{struct_tp}}, payload P) (result R, err error)
 }
 {{- end -}}

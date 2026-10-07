@@ -126,7 +126,7 @@ func (vc *genGoCmd) Run() error {
 }
 
 func (vc *genGoCmd) do(gAst *GrammarsNode, tmplName, suffix string) error {
-	tmplCmd := &genTmplCmd{
+	tmplCmd := &GenTmplCmd{
 		GenCmd:     vc.GenCmd,
 		OutputFile: filepath.Join(vc.OutputDir, vc.FilePrefix+suffix),
 		gmrsAst:    *gAst,

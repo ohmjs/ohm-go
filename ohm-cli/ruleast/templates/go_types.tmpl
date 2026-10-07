@@ -21,7 +21,7 @@ import (
 // {{. | trim}}
 {{- end}}
 // ----
-type {{tmpl_by_type $Branch "" "_TypeName"}}{{if $G.Generics}}[P, R any]{{end}} struct {
+type {{tmpl_by_type $Branch "" "_TypeName"}}{{struct_tp_decl}} struct {
 {{tmpl_by_type $Branch "" "_GoType" -}}
 }
 

@@ -5,6 +5,7 @@ struct GoTarget {
     String GoRuntimeImport;
     String GoRuntimePackage;
     Bool Generics;
+    Bool GenericMethods;
     GrammarNode GrammarNode;
     String Cli;
 };

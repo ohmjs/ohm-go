@@ -443,6 +443,7 @@ type _GoTarget struct {
 	GoRuntimeImport  string      `json:"GoRuntimeImport"`
 	GoRuntimePackage string      `json:"GoRuntimePackage"`
 	Generics         bool        `json:"Generics"`
+	GenericMethods   bool        `json:"GenericMethods"`
 	GrammarNode      GrammarNode `json:"GrammarNode"`
 	Cli              string      `json:"Cli"`
 }
@@ -452,6 +453,7 @@ func MakeAll_GoTarget(
 	goruntimeimport string,
 	goruntimepackage string,
 	generics bool,
+	genericmethods bool,
 	grammarnode GrammarNode,
 	cli string,
 ) GoTarget {
@@ -461,6 +463,7 @@ func MakeAll_GoTarget(
 			GoRuntimeImport:  goruntimeimport,
 			GoRuntimePackage: goruntimepackage,
 			Generics:         generics,
+			GenericMethods:   genericmethods,
 			GrammarNode:      grammarnode,
 			Cli:              cli,
 		},
@@ -472,6 +475,7 @@ func Make_GoTarget(
 	goruntimeimport string,
 	goruntimepackage string,
 	generics bool,
+	genericmethods bool,
 	grammarnode GrammarNode,
 	cli string,
 ) GoTarget {
@@ -481,6 +485,7 @@ func Make_GoTarget(
 			GoRuntimeImport:  goruntimeimport,
 			GoRuntimePackage: goruntimepackage,
 			Generics:         generics,
+			GenericMethods:   genericmethods,
 			GrammarNode:      grammarnode,
 			Cli:              cli,
 		},

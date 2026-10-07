@@ -219,36 +219,77 @@ func TestFile(reMatchTest string, txTarFile string) error {
 				file:    fi,
 				process: rast,
 			})
-		case "go_accepts":
+		case "go_types", "go_interfaces", "go_accepts":
 			if _, ok := txtsMap[parts[0]]; !ok {
-				panic(fmt.Errorf("txt file doesn't exist for rule ast. %s", parts[0]))
+				panic(fmt.Errorf("txt file doesn't exist for %s. %s", ext, parts[0]))
 			}
-			cmd := ruleast.NewGenAcceptsCmd()
-			cmd.ExcludeCli = true
-			cmd.GenCmd.SuffixOutfLineNos = false
-			cmd.GenCmd.Grammar = txtsMap[parts[0]].Source
 			candps[parts[0]] = append(candps[parts[0]], Expect{
 				file:    fi,
-				process: cmd,
+				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]].Source),
 			})
 		}
 	}
 	if gmr == nil {
 		panic(fmt.Errorf("expected one grammar file per txtar. %v", txTarFile))
 	}
-	RunTests(txTarFile, gmr, sepxrs)
+	mismatches := RunTests(txTarFile, gmr, sepxrs)
 	for _, f := range txtKeys {
 		candp := candps[f]
-		RunTests(txTarFile, gmr, candp)
+		mismatches += RunTests(txTarFile, gmr, candp)
+	}
+	if mismatches > 0 {
+		return fmt.Errorf("%d expectation(s) did not match in %s", mismatches, txTarFile)
 	}
 	return nil
 }
 
+// newGenTmplExpect builds the generator command for a `<test>.<flags>.<ext>`
+// file, where ext is one of go_types, go_interfaces or go_accepts. Single
+// letter flags between the test name and the extension set options:
+//
+//	m   --generic-methods
+//	g   --no-generics
+//	s   --skip-type-check-method
+func newGenTmplExpect(ext string, flags []string, grammar string) Processor {
+	var cmd *ruleast.GenTmplCmd
+	switch ext {
+	case "go_types":
+		cmd = ruleast.NewGenTypesCmd()
+	case "go_interfaces":
+		cmd = ruleast.NewGenInterfaceCmd()
+	case "go_accepts":
+		cmd = ruleast.NewGenAcceptsCmd()
+	default:
+		panic("unknown generator extension : " + ext)
+	}
+	cmd.ExcludeCli = true
+	cmd.GenCmd.SuffixOutfLineNos = false
+	cmd.GenCmd.Grammar = grammar
+	for _, flag := range flags {
+		switch flag {
+		case "m":
+			cmd.GenCmd.GenericMethods = true
+		case "g":
+			cmd.NoGenerics = true
+		case "s":
+			cmd.SkipTypeCheckMethod = true
+		default:
+			panic("unkown short flag : " + flag)
+		}
+	}
+	return cmd
+}
+
+// RunTests processes every expectation and prints a diff for each one whose
+// output differs from the fixture. It returns the number of mismatches.
+// Processing errors (for example the docker compile behind c_and_p failing)
+// are reported but not counted, so an environment without docker still
+// exercises the pure-Go generators.
 func RunTests(
 	txTarFile string,
 	gmr *txtar.File,
 	tests []Expect,
-) {
+) (mismatches int) {
 	for _, exp := range tests {
 		var (
 			rec string
@@ -264,6 +305,7 @@ func RunTests(
 		expected := strings.TrimSpace(string(exp.file.Data))
 		received := strings.TrimSpace(rec)
 		if expected != received {
+			mismatches++
 			fmt.Fprintf(os.Stderr, "! vv sexpr doesn't match %s %s\n", txTarFile, exp.file.Name)
 			fmt.Fprintf(os.Stderr, "expected:\n")
 			fmt.Fprintf(os.Stderr, "%s\n", expected)
@@ -275,4 +317,5 @@ func RunTests(
 			fmt.Fprintf(os.Stderr, "+ matches %s %s\n", txTarFile, exp.file.Name)
 		}
 	}
+	return mismatches
 }
