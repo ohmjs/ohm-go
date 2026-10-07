@@ -1,6 +1,6 @@
 module github.com/ohmjs/ohm-go/ohm-cli
 
-go 1.26.4
+go 1.27.1
 
 tool (
 	github.com/adl-lang/adl-go/goadlc

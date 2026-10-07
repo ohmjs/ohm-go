@@ -17,6 +17,8 @@ type TerminalVisitor interface {
 	Terminal(node TerminalNode)
 }
 
+type AcceptorFunc[P, R any] func(this Node, visitor any, payload P) (result R, err error)
+
 type Acceptor[P, R any] interface {
 	Accept(this Node, visitor any, payload P) (result R, err error)
 }
