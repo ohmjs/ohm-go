@@ -48,7 +48,7 @@ Generates a Docker command to compile a `.ohm` grammar file into a `.wasm` file 
   --debug, -d
   --docker-tag, -t    The version tag of the ohmjs/ohm docker image to use in the generated command.
                       Defaults to the version of the goohm runtime included in this cli. (default
-                      18.0.0-beta.16)
+                      18.0.0-beta.15)
   --grammar-name, -g
   --output, -o
   --format, -f        Output format. One of: command, go_generate, script. (default command)
@@ -71,7 +71,7 @@ A ready-to-run shell snippet with a comment:
 ``` bash 
 
 # To generate a .wasm file for use with this version of the runtime, run:
-docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.15 compile my-grammar.ohm
 ```
 <!--/tmpl-->
 
@@ -82,7 +82,7 @@ A `//go:generate` directive for embedding in a Go source file:
 <!--tmpl,code=bash:go run main.go generate command --format=go_generate my-grammar.ohm -->
 ``` bash 
 
-//go:generate docker run --rm -v $PWD:/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+//go:generate docker run --rm -v $PWD:/local ohmjs/ohm:18.0.0-beta.15 compile my-grammar.ohm
 ```
 <!--/tmpl-->
 
@@ -96,7 +96,7 @@ A standalone shell script with a shebang:
 ``` bash 
 #!/bin/sh
 
-docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile my-grammar.ohm
+docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.15 compile my-grammar.ohm
 ```
 <!--/tmpl-->
 

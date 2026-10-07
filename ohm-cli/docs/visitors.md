@@ -57,7 +57,7 @@ runtime version built into the CLI (keep that in step with the `ohm`
 version in your own `go.mod`):
 
 ```sh
-docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.16 compile arith.ohm
+docker run --rm -v "$PWD":/local ohmjs/ohm:18.0.0-beta.15 compile arith.ohm
 ```
 
 `ohm.NewGrammar` reads the compiler version recorded in the wasm and refuses

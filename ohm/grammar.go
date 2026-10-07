@@ -17,7 +17,7 @@ import (
 // Needs to manually be kept in sync (updated) as packages/compiler changes.
 // The cli uses the head of the list is the recommended tag when generating a generate command (eg docker run ohmjs/ohm:<version>).
 var acceptedVersions = []string{
-	"18.0.0-beta.16",
+	// "18.0.0-beta.16",
 	"18.0.0-beta.15",
 	"18.0.0-beta.14",
 	"18.0.0-beta.13",
