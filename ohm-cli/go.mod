@@ -8,19 +8,17 @@ tool (
 )
 
 require (
-	github.com/adl-lang/adl-go/adl v0.0.1
+	github.com/adl-lang/adl-go/adl v1.1.0 // being developed concurrently
 	github.com/google/go-cmp v0.6.0
 	github.com/jpillora/opts v1.2.3
 	github.com/millergarym/gotmpl v1.2.0
-	github.com/ohmjs/ohm-go/ohm v0.0.1
+	github.com/ohmjs/ohm-go/ohm v0.0.2 // being developed concurrently
 	github.com/samber/lo v1.53.0
 	golang.org/x/tools v0.49.0
 )
 
-// replace github.com/millergarym/gotmpl => ../../../golang/gotmpl
-
 require (
-	github.com/adl-lang/adl-go/goadlc v1.0.0 // indirect
+	github.com/adl-lang/adl-go/goadlc v1.1.0 // indirect; indirect - being developed concurrently
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.0.0 // indirect
 	github.com/jpillora/md-tmpl v1.3.0 // indirect
