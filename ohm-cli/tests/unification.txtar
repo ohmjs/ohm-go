@@ -1,0 +1,129 @@
+-- ruleast.ohm --
+// not used in these tests
+G {}
+
+-- rules.txt --
+G {
+  S = A
+  A = "a"
+}
+
+-- rules.s.rule_ast --
+G
+S @bare {
+  a @rule A
+}
+A @bare {
+  term @term
+}
+
+-- alt_rules.txt --
+G {
+  S = A | B
+  A = "a"
+  B = "b"
+}
+
+-- alt_rules.s.comment --
+Could do more for alternative of rules.
+ie
+S @alt_rules {
+  @alt A
+  @alt B
+}
+
+-- alt_rules.s.rule_ast --
+G
+S @bare {
+  rule @rules A B
+}
+A @bare {
+  term @term
+}
+B @bare {
+  term @term
+}
+
+-- case_n_term-01.txt --
+G {
+  S =
+    | "a" -- alfa 
+    | "b"
+}
+
+-- case_n_term-01.s.rule_ast --
+G
+S @cases {
+  alfa @inline
+  term @term
+}
+S @virt alfa {
+  term @term
+}
+
+-- case_n_term-02.txt --
+G {
+  S =
+    | "a" -- alfa 
+    | "b"
+    | "c"
+}
+
+-- case_n_term-02.s.rule_ast --
+G
+S @cases {
+  alfa @inline
+  term @term
+}
+S @virt alfa {
+  term @term
+}
+
+-- case_n_term-03.txt --
+G {
+  S =
+    | "a" -- alfa 
+    | "b"
+    | letter
+}
+
+-- case_n_term-03.s.rule_ast --
+G
+S @cases {
+  alfa @inline
+  arg @node
+}
+S @virt alfa {
+  term @term
+}
+
+-- case_n_term-04.txt --
+G {
+  S =
+    | "a" -- alfa 
+    | number
+    | letter
+}
+
+-- case_n_term-04.s.rule_ast --
+G
+S @cases {
+  alfa @inline
+  rule @rules number letter
+}
+S @virt alfa {
+  term @term
+}
+
+-- case_n_term-05.txt --
+G {
+  S = "a" number letter
+}
+
+-- case_n_term-05.s.rule_ast --
+G
+S @bare {
+  term @term
+  number @rule number
+  letter @rule letter
+}

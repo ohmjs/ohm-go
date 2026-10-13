@@ -1,0 +1,29 @@
+{
+  "Loader": {
+    "Searchdir": [
+      "."
+    ],
+    "MergeAdlext": "adl-go",
+    "BundleMaps": [
+      {
+        "AdlModuleNamePrefix": "sys",
+        "GoModPath": "github.com/adl-lang/adl-go/adl",
+        "AdlSrc": "",
+        "Path": "adl/stdlib_go"
+      }
+    ],
+    "Files": [
+      "./ruleast.adl"
+    ]
+  },
+  "Mod": {
+    "Outputdir": "."
+  },
+  "GoTypes": {
+    "NoGoFmt": false,
+    "GoAdlPath": "github.com/adl-lang/adl-go/adl",
+    "ExcludeAst": false,
+    "Outputdir": "./"
+  },
+  "GoApis": []
+}

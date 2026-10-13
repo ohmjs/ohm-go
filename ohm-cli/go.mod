@@ -1,0 +1,32 @@
+module github.com/ohmjs/ohm-go/ohm-cli
+
+go 1.27.1
+
+tool (
+	github.com/adl-lang/adl-go/goadlc
+	github.com/jpillora/md-tmpl
+)
+
+require (
+	github.com/adl-lang/adl-go/adl v1.1.0 // being developed concurrently
+	github.com/google/go-cmp v0.6.0
+	github.com/jpillora/opts v1.2.3
+	github.com/millergarym/gotmpl v1.2.0
+	github.com/ohmjs/ohm-go/ohm v0.0.2 // being developed concurrently
+	github.com/samber/lo v1.53.0
+	golang.org/x/tools v0.49.0
+)
+
+require (
+	github.com/adl-lang/adl-go/goadlc v1.1.0 // indirect; indirect - being developed concurrently
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.0.0 // indirect
+	github.com/jpillora/md-tmpl v1.3.0 // indirect
+	github.com/mattn/go-zglob v0.0.8 // indirect
+	github.com/posener/complete v1.2.2-0.20190308074557-af07aa5181b3 // indirect
+	github.com/tetratelabs/wazero v1.11.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
+)

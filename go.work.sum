@@ -1,0 +1,12 @@
+github.com/adl-lang/adl-go/adl v1.0.0/go.mod h1:BW/pu1we1Ki4MfgFaerlrUpALr/JEn8mHKRUW166aKg=
+github.com/adl-lang/adl-go/adl v1.1.0 h1:/TXQwUTpx70Qa3bwWhZ9nXpdKpA04XmWuGwwIziYg4A=
+github.com/adl-lang/adl-go/adl v1.1.0/go.mod h1:BW/pu1we1Ki4MfgFaerlrUpALr/JEn8mHKRUW166aKg=
+github.com/adl-lang/adl-go/goadlc v1.1.0/go.mod h1:3AVIWd+YrrrL19HU+epy0Iv39ElIvH+5jMy7WAlBNTs=
+github.com/ohmjs/ohm-go/ohm v0.0.2/go.mod h1:T2yvQEQGfKHMOSSVyHkzZHjdABVPUVr9FzLI1w1J6P0=
+github.com/ohmjs/ohm-go/ohm-cli v0.0.6/go.mod h1:AhifHmIGuk8YgPuza9hEqR4puuQ9SGNYm9llLGvnkGE=
+github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17/go.mod h1:lgLbSvA5ygNOMpwM/9anMpWVlVJ7Z+cHWq/eFuinpGE=
+golang.org/x/net v0.25.0/go.mod h1:JkAGAh7GEvH74S6FOH42FLoXpXbE/aqXSrIQjXgsiwM=
+golang.org/x/net v0.58.0/go.mod h1:YwCddHnFlT7eLQqVprV19OnhLGtc5xOKgE0RyqgfWAU=
+golang.org/x/telemetry v0.0.0-20240228155512-f48c80bd79b2/go.mod h1:TeRTkGYfJXctD9OcfyVLyj2J3IxLnKwHJR8f4D8a3YE=
+golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5/go.mod h1:LVehoXe41cL5SCVQilsV7Gg6BNG+Js6P9PhSbYTIUkQ=

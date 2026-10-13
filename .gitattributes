@@ -1,0 +1,2 @@
+# WebAssembly modules are binary: no diffs, no merges, no EOL/text conversion.
+*.wasm binary
