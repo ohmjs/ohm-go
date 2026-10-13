@@ -12,7 +12,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/jpillora/opts v1.2.3
 	github.com/millergarym/gotmpl v1.2.0
-	github.com/ohmjs/ohm-go/ohm v0.0.2 // being developed concurrently
+	github.com/ohmjs/ohm-go/ohm v1.0.0 // being developed concurrently
 	github.com/samber/lo v1.53.0
 	golang.org/x/tools v0.49.0
 )
