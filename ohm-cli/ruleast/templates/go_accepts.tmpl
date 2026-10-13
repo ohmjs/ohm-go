@@ -241,11 +241,12 @@ func (node *{{tmpl_by_type . "" "_TypeName"}}{{struct_tp}}) DefaultAccept{{metho
 {{end -}}
 
 {{- define "BuiltinHorArgNode_LeafAccept" -}}
+{{$argName := get "argName" -}}
 	// BuiltinHOR
 	// {{.Elem.Name}}
 {{set "fname" "fn_elem"}}{{tmpl_by_type .Elem.Node.Branch.V "" "_BHORCallback" -}}
 {{set "fname" "fn_sep"}}{{tmpl_by_type .Sep.Node.Branch.V "" "_BHORCallback" -}}
-	{{go_rt_pkg}}.AcceptBuiltinHOR(node.{{.List_type}}, fn_elem, fn_sep)
+	{{go_rt_pkg}}.AcceptBuiltinHOR(node.{{$argName | title}}, fn_elem, fn_sep)
 {{end -}}
 
 {{- define "AltUnaryRules_LeafAccept" -}}
