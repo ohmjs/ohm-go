@@ -2,6 +2,7 @@ package tests
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +18,7 @@ import (
 
 type testGmrCmd struct {
 	ReMatchTest string
+	Strict      bool     `help:"count an expectation that fails to process, such as an input that does not parse, as a failure"`
 	TxTarFile   []string `opts:"mode=arg"`
 }
 
@@ -54,15 +56,23 @@ func (cm *testGmrCmd) Run() error {
 	} else {
 		return fmt.Errorf("only valid if run from cli directory. Current dir is %s", cwd)
 	}
+	// Every file runs, so one failing fixture does not hide the next.
+	var errs []error
 	for _, f := range cm.TxTarFile {
-		if err = TestFile(cm.ReMatchTest, f); err != nil {
-			return err
+		if err = testFile(cm.ReMatchTest, f, cm.Strict); err != nil {
+			errs = append(errs, err)
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
+// TestFile runs the expectations of one txtar file. An expectation that
+// fails to process is reported and not counted; see RunTests.
 func TestFile(reMatchTest string, txTarFile string) error {
+	return testFile(reMatchTest, txTarFile, false)
+}
+
+func testFile(reMatchTest string, txTarFile string, strict bool) error {
 	ar, err := txtar.ParseFile(txTarFile)
 	if err != nil {
 		return err
@@ -232,10 +242,14 @@ func TestFile(reMatchTest string, txTarFile string) error {
 	if gmr == nil {
 		panic(fmt.Errorf("expected one grammar file per txtar. %v", txTarFile))
 	}
-	mismatches := RunTests(txTarFile, gmr, sepxrs)
+	mismatches, errs := RunTests(txTarFile, gmr, sepxrs)
 	for _, f := range txtKeys {
-		candp := candps[f]
-		mismatches += RunTests(txTarFile, gmr, candp)
+		m, e := RunTests(txTarFile, gmr, candps[f])
+		mismatches += m
+		errs += e
+	}
+	if strict && errs > 0 {
+		return fmt.Errorf("%d expectation(s) did not match and %d failed to process in %s", mismatches, errs, txTarFile)
 	}
 	if mismatches > 0 {
 		return fmt.Errorf("%d expectation(s) did not match in %s", mismatches, txTarFile)
@@ -281,15 +295,16 @@ func newGenTmplExpect(ext string, flags []string, grammar string) Processor {
 }
 
 // RunTests processes every expectation and prints a diff for each one whose
-// output differs from the fixture. It returns the number of mismatches.
-// Processing errors (for example the docker compile behind c_and_p failing)
-// are reported but not counted, so an environment without docker still
-// exercises the pure-Go generators.
+// output differs from the fixture. It returns the number of mismatches and
+// the number of processing errors. A processing error (for example the
+// docker compile behind c_and_p failing, or an input that does not parse)
+// is reported, and fails the run only under --strict, so an environment
+// without docker still exercises the pure-Go generators.
 func RunTests(
 	txTarFile string,
 	gmr *txtar.File,
 	tests []Expect,
-) (mismatches int) {
+) (mismatches, errs int) {
 	for _, exp := range tests {
 		var (
 			rec string
@@ -297,6 +312,7 @@ func RunTests(
 		)
 		rec, err = exp.process.Process()
 		if err != nil {
+			errs++
 			fmt.Fprintf(os.Stderr, "gen result error for %s, err : %v\n", exp.file.Name, err)
 			fmt.Fprintf(os.Stderr, " gmr '%s'\n", string(gmr.Data))
 			fmt.Fprintf(os.Stderr, " text '%s'\n'%s'\n", exp.file.Name, string(exp.file.Data))
@@ -317,5 +333,5 @@ func RunTests(
 			fmt.Fprintf(os.Stderr, "+ matches %s %s\n", txTarFile, exp.file.Name)
 		}
 	}
-	return mismatches
+	return mismatches, errs
 }

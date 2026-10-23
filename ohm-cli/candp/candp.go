@@ -2,11 +2,13 @@ package candp
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/ohmjs/ohm-go/ohm"
 	"github.com/samber/lo"
@@ -56,43 +58,21 @@ func (vc *CompileAndParseCmd) Run() error {
 	return nil
 }
 
+// wasmCache holds each grammar compiled in this process, keyed by the
+// docker tag and the grammar file's content. `test txtar` makes one
+// CompileAndParseCmd per input, all on one grammar, so without it every
+// input paid a docker compile of about half a second. The key is the one
+// file alone: a grammar that inherits from another file in its directory
+// is compiled once per process, as it was before for a single command.
+var (
+	wasmCacheMu sync.Mutex
+	wasmCache   = map[[sha256.Size]byte][]byte{}
+)
+
 func (vc *CompileAndParseCmd) Process() (string, error) {
-	// create a tempdir, get the absolute path of the directory GrammarFile is in
-	// run `docker run --rm -v "<basedir>:/local" -v "<tempdir>:/dst" ohmjs/ohm:18.0.0-beta.15 compile GrammarFile`
-	tempdir, err := os.MkdirTemp("", "ohm-compile-*")
+	wasmBytes, err := vc.compile()
 	if err != nil {
-		return "", fmt.Errorf("creating tempdir: %v", err)
-	}
-	if !vc.KeepWasm {
-		defer os.RemoveAll(tempdir)
-	} else {
-		fmt.Fprintf(os.Stderr, "working dir %s\n", tempdir)
-	}
-	absGrammarPath, err := filepath.Abs(vc.GrammarFile)
-	if err != nil {
-		return "", fmt.Errorf("resolving grammar file path: %v", err)
-	}
-	basedir := filepath.Dir(absGrammarPath)
-	grammarBasename := filepath.Base(absGrammarPath)
-	dockerTag := ((*ohm.Grammar)(nil)).MatchingDockerImageTags()[0]
-	cmd := exec.Command("docker", "run", "--rm",
-		"-v", fmt.Sprintf("%s:/local", basedir),
-		"-v", fmt.Sprintf("%s:/dst", tempdir),
-		fmt.Sprintf("ohmjs/ohm:%s", dockerTag),
-		"compile", grammarBasename,
-	)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("docker compile: %v", err)
-	}
-	// get the basename of GrammarFile without the extension
-	// read <tempdir>/<basename>.wasm
-	baseNoExt := strings.TrimSuffix(grammarBasename, filepath.Ext(grammarBasename))
-	wasmPath := filepath.Join(tempdir, baseNoExt+".wasm")
-	wasmBytes, err := os.ReadFile(wasmPath)
-	if err != nil {
-		return "", fmt.Errorf("reading compiled wasm at %s: %v", wasmPath, err)
+		return "", err
 	}
 	ctx := context.Background()
 	var (
@@ -117,6 +97,62 @@ func (vc *CompileAndParseCmd) Process() (string, error) {
 	var result strings.Builder
 	vc.toSexprNode(root, 0, &result)
 	return result.String()[1:], nil
+}
+
+// compile answers the grammar's wasm, from wasmCache when this process
+// has compiled the same grammar before, and from the ohmjs/ohm docker
+// image otherwise. The lock is held over the compile, so two callers of
+// one grammar run docker once.
+func (vc *CompileAndParseCmd) compile() ([]byte, error) {
+	absGrammarPath, err := filepath.Abs(vc.GrammarFile)
+	if err != nil {
+		return nil, fmt.Errorf("resolving grammar file path: %v", err)
+	}
+	src, err := os.ReadFile(absGrammarPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading grammar file: %v", err)
+	}
+	dockerTag := ((*ohm.Grammar)(nil)).MatchingDockerImageTags()[0]
+	key := sha256.Sum256(append([]byte(dockerTag+"\x00"), src...))
+	wasmCacheMu.Lock()
+	defer wasmCacheMu.Unlock()
+	if wasm, ok := wasmCache[key]; ok && !vc.KeepWasm {
+		return wasm, nil
+	}
+	// create a tempdir, get the absolute path of the directory GrammarFile is in
+	// run `docker run --rm -v "<basedir>:/local" -v "<tempdir>:/dst" ohmjs/ohm:<tag> compile GrammarFile`
+	tempdir, err := os.MkdirTemp("", "ohm-compile-*")
+	if err != nil {
+		return nil, fmt.Errorf("creating tempdir: %v", err)
+	}
+	if !vc.KeepWasm {
+		defer os.RemoveAll(tempdir)
+	} else {
+		fmt.Fprintf(os.Stderr, "working dir %s\n", tempdir)
+	}
+	basedir := filepath.Dir(absGrammarPath)
+	grammarBasename := filepath.Base(absGrammarPath)
+	cmd := exec.Command("docker", "run", "--rm",
+		"-v", fmt.Sprintf("%s:/local", basedir),
+		"-v", fmt.Sprintf("%s:/dst", tempdir),
+		fmt.Sprintf("ohmjs/ohm:%s", dockerTag),
+		"compile", grammarBasename,
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("docker compile: %v", err)
+	}
+	// get the basename of GrammarFile without the extension
+	// read <tempdir>/<basename>.wasm
+	baseNoExt := strings.TrimSuffix(grammarBasename, filepath.Ext(grammarBasename))
+	wasmPath := filepath.Join(tempdir, baseNoExt+".wasm")
+	wasmBytes, err := os.ReadFile(wasmPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading compiled wasm at %s: %v", wasmPath, err)
+	}
+	wasmCache[key] = wasmBytes
+	return wasmBytes, nil
 }
 
 func (vc *CompileAndParseCmd) toSexprNode(node ohm.Node, depth int, result *strings.Builder) {
