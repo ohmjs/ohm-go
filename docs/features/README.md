@@ -10,3 +10,4 @@ directory.
 
 | feature | prd | plan | arch |
 |---------|-----|------|------|
+| [001-error-reporting](001-error-reporting/) | prd | x | |
