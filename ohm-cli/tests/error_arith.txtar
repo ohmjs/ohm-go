@@ -1,7 +1,27 @@
 Error fixtures for the arith grammar of examples/generic-methods.
 Each .error member is the output of `ohm-cli test match_error` on the
-.txt member of the same test. These fixtures compile the grammar with
-docker. See error-reporting prd section 10.
+.txt member of the same test, and each .expected member the output of
+`ohm-cli test match_error --expected`. These fixtures compile the grammar
+with docker. See error-reporting prd section 10.
+
+The text matches miniohm in the ohmjs/ohm:18.0.0-beta.15 docker image
+(its runtime package.json says ohm-js 18.0.0-beta.13), run on a fresh
+Grammar per input. miniohm passes ruleNames[0] (Exp) to recordFailures,
+not the start rule, yet gives the same text for prim.start=PriExp.
+
+Test paren replaces the plan's input `1 +\n (2 * x`, which traps in
+recordFailures: a Wasm stack overflow here, and `Maximum call stack size
+exceeded` in miniohm. See error-reporting prd section 0 and
+docs/kb/ohm-failure-recording.md. Paren adds a `(` and a `)` to that
+input. It does not trap, and has fluffy failures only with flag N; with
+the trailing newline every failure is non-fluffy.
+
+Test unclosed pins what the Go runtime does on the trap: Err() gives the
+position only, so the message ends at the caret and the short message
+reads `match failed`. miniohm throws instead. No unclosed.expected
+member is possible: `test match_error --expected` fails with
+`error calling recordFailures: stack overflow`, a processing error. When
+the compiler is fixed, both unclosed members must change.
 -- grammar.ohm --
 Arithmetic {
   Exp
@@ -35,8 +55,13 @@ Line 1, col 5:
 > 1 | 1 + * 2
           ^
   2 | 
+Expected "(", an identifier, or a number
 -- bad_op.s.error --
-Line 1, col 5: match failed
+Line 1, col 5: expected "(", an identifier, or a number
+-- bad_op.expected --
+literal "("
+description an identifier
+description a number
 -- trailing.txt --
 abc 12
 -- trailing.error --
@@ -44,15 +69,23 @@ Line 1, col 5:
 > 1 | abc 12
           ^
   2 | 
+Expected end of input
 -- trailing.s.error --
-Line 1, col 5: match failed
+Line 1, col 5: expected end of input
+-- trailing.expected --
+end end of input
 -- empty.txt --
 -- empty.error --
 Line 1, col 1:
 > 1 | 
       ^
+Expected "(", an identifier, or a number
 -- empty.s.error --
-Line 1, col 1: match failed
+Line 1, col 1: expected "(", an identifier, or a number
+-- empty.expected --
+literal "("
+description an identifier
+description a number
 -- prim.txt --
 x +
 -- prim.start=PriExp.error --
@@ -60,11 +93,43 @@ Line 1, col 3:
 > 1 | x +
         ^
   2 | 
+Expected end of input
 -- prim.start=PriExp.s.error --
-Line 1, col 3: match failed
+Line 1, col 3: expected end of input
+-- prim.start=PriExp.expected --
+end end of input
+-- paren.txt --
+(1 +
+ (2 * x)
+-- paren.N.error --
+Line 2, col 9:
+  1 | (1 +
+> 2 |  (2 * x)
+              ^
+Expected ")"
+-- paren.N.expected --
+literal ")"
+-- paren.N.f.expected --
+literal "*" (fluffy)
+literal "/" (fluffy)
+literal "+" (fluffy)
+literal "-" (fluffy)
+literal ")"
+-- unclosed.txt --
+1 +
+ (2 * x
+-- unclosed.N.error --
+Line 2, col 8:
+  1 | 1 +
+> 2 |  (2 * x
+             ^
+-- unclosed.N.s.error --
+Line 2, col 8: match failed
 -- ok.txt --
 1 + 2 * (3 - x)
 -- ok.error --
 match succeeded
 -- ok.s.error --
+match succeeded
+-- ok.expected --
 match succeeded

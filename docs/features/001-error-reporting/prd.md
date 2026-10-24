@@ -14,33 +14,22 @@ tests for this feature live in `ohm-cli`, not in `ohm`. The
 
 **Status (2026-10-25).** Part A is built in `ohm` (sections 4 to 6,
 plan Phase 1): `Position`, `FailurePosition`, `MatchError` and `Err()`.
-Fixtures test Part A (plan Phase 2): the `error` txtar
-kind, its flags `o`, `N`, `s` and `start=`, the command
-`ohm-cli test match_error`, and the Go tests in
-`ohm-cli/tests/match_error_test.go` (sections 10.1 to 10.5 and 10.7, and
-three of the six rules in 10.6). Part B is built in `ohm` (sections 7
-and 8, plan Phase 3): `RightmostFailures`, `Expected`, `ExpectedText`,
-and `Err()` now fills `MatchError.Expected`. So the Phase 2 `.error`
-fixtures, which expect `match failed`, now fail; plan Phase 4 updates
-them. Section 9 and the `expected` kind of section 10 are not built.
-One item in section 0 blocks a Phase 4 fixture and open decision 11.1.
+Part B is built in `ohm` (sections 7 and 8, plan Phase 3):
+`RightmostFailures`, `Expected`, `ExpectedText`, and `Err()` fills
+`MatchError.Expected`. Fixtures test both (plan Phases 2 and 4): the
+`error` and `expected` txtar kinds with their flags `o`, `N`, `s`, `f`
+and `start=`, the command `ohm-cli test match_error` with `--expected`
+and `--fluffy`, and the Go tests in `ohm-cli/tests/match_error_test.go`
+(all of section 10). Each fixture matches miniohm in the
+`ohmjs/ohm:18.0.0-beta.15` image, except the emoji column (section 5).
+Open decision 11.1 is closed, with its arith half left open by an
+upstream trap (section 3). Section 9, the `ohm-cli` commands, is not
+built; it is plan Phase 5.
 
 ## 0. Blockers
 
-**`recordFailures` traps on the arith input `1 +\n (2 * x`.** It blocks
-the Phase 4 `.f.expected` fixture for that input, and the arith half of
-open decision 11.1. Any arith input with an unclosed `(` traps: `(x`
-and `(2 * x` give a Wasm stack overflow, `(2` and `1 + (2` a Wasm
-abort. miniohm in the `ohmjs/ohm:18.0.0-beta.15` image traps on the
-same inputs (`Maximum call stack size exceeded`, `Wasm abort`), so the
-bug is in the compiler runtime, not in the Go runtime. The section 3
-row for this input does not reproduce. The Go runtime returns the error
-from `RightmostFailures`, and `Err()` gives the position only. Fix:
-choose another arith input for the fluffy fixture and for 11.1, or
-report the bug upstream and wait for a fixed compiler. Checked
-2026-10-25 with a Go probe on `examples/generic-methods/arith.wasm`, and
-with `docker run --entrypoint node ohmjs/ohm:18.0.0-beta.15` on a
-script that calls `getRightmostFailures()`.
+None. The `recordFailures` trap that blocked plan Phase 4 is worked
+around; section 3 records it.
 
 `go test ./...` in `ohm/` fails before any change, because
 `TestES5Match` reads an `es5.wasm` that is not in the repository. That
@@ -61,6 +50,7 @@ plan lists it under **Not in any phase**.
 | Start rule for the second parse | The rule that `Match` used (section 8) | `ruleNames[0]`, as miniohm does: wrong when a start rule is given |
 | Shape of a next valid token | `Expected{Kind, Text, Literal}`, with the kind parsed from the description (section 7) | Raw strings; an upstream table of kinds |
 | Fluffy failures | Left out of `Expected()`; kept, marked, in `RightmostFailures()` (section 7) | Dropped |
+| Empty or short expected set | No fall back: `Expected()` stays empty when every failure is fluffy, as in miniohm (section 11.1) | Fall back to the fluffy failures when no other failure exists |
 | CLI format | `path:line:col: expected …`, then the excerpt (section 9) | The long message only |
 | Where tests live | `ohm-cli`: txtar fixtures, plus Go tests in `ohm-cli/tests` for what a fixture cannot state (section 10) | New tests in `ohm/`, with a Wasm fixture copied into `ohm/testdata` |
 | How a fixture states an error | Two new expectation kinds, `<test>.error` and `<test>.expected`, beside `c_and_p` and `rule_ast` (section 10.2) | One kind that holds both; a `want-error` flag on `c_and_p` |
@@ -140,17 +130,30 @@ every name above. Probe output for `arith.wasm`:
 | `1 + * 2` | 4 | `"("`, `an identifier`, `a number` |
 | `abc 12` | 4 | `end of input` |
 | empty | 0 | `"("`, `an identifier`, `a number` |
-| `1 +\n (2 * x` | 11 | `an alpha-numeric character` (fluffy) |
+| `1 +\n (2 * x` | 11 | traps; see below |
 
 Probe output for the embedded Ohm grammar, `ohm-cli/utils/ohm-grammar.wasm`:
 
 | input | `rightmostFailurePos` | non-fluffy failures | fluffy failures |
 |---|---|---|---|
-| `G {\n  S = *x\n}` | 10 | `"}"` | about 200, over 15 distinct texts |
-| `G {\n  S = "a"` | 13 | `"}"` | some |
-| `G { S = "a" }\nH` | 15 | `"{"` | some |
+| `G {\n  S = *x\n}` | 10 | `"}"` | 8 distinct texts |
+| `G {\n  S = "a"` | 13 | `"}"` | 12 distinct texts |
+| `G { S = "a" }\nH` | 15 | `"{"` | 3 distinct texts |
 
-Both tables feed open decision 11.1.
+Both tables fed open decision 11.1. miniohm gives the same failures on
+each input that does not trap
+([ohm-failure-recording](../../kb/ohm-failure-recording.md)).
+
+**Known upstream bug: `recordFailures` traps.** On `1 +\n (2 * x`, and
+on 1442 of the 7380 arith inputs of up to four characters, the second
+parse traps with a Wasm stack overflow. Examples are `(x`,
+`1 + (2` and `1)`. miniohm in the `ohmjs/ohm:18.0.0-beta.15` image traps
+on each example checked, so the bug is in the compiler runtime. The Go
+runtime returns the error from `RightmostFailures`, and `Err()` gives
+the position only. The recorded failures can also depend on earlier
+matches on the same `Grammar`, in miniohm and in Go. The arith fixtures
+use `(1 +\n (2 * x)` for the fluffy case, and pin the trap with test
+`unclosed`. Checked 2026-10-25; the kb page has the commands.
 
 ## 4. Part A: the position API
 
@@ -491,25 +494,26 @@ run fails the build.
 The text in an `.error` or `.expected` fixture should match what
 miniohm prints for the same grammar and input. The fixture's txtar
 comment, the text before the first member, names the miniohm version
-that produced it. A difference is a bug in the Go runtime, or open
-decision 11.1.
+that produced it. A difference is a bug in the Go runtime, or the
+column unit of section 5.
 
 ## 11. Open decisions
 
-No `docs/kb/` page analyses these yet. Each one names the page that
-should.
+`docs/kb/ohm-failure-recording.md` analyses decision 1. No page
+analyses decision 2 yet.
 
-1. **An empty or a short expected set.** For `1 +\n (2 * x` on `arith`,
-   the only failure recorded at the rightmost position is fluffy.
-   `Expected()` is then empty, and the message reads `expected ` with
-   nothing after it. For `S = *x` on the Ohm grammar, only `"}"` is
-   non-fluffy; more than 15 other texts are fluffy. Classic ohm-js
-   documents a long list for that input (`doc/errors.md`). Steps: run
-   miniohm on both inputs. If miniohm gives the same result, decide
-   whether to fall back to the fluffy failures when no other failure
-   exists. If miniohm differs, the bug is in the Go runtime. A
-   difference from classic ohm-js is upstream, not ours. Page to write:
-   `docs/kb/ohm-failure-recording.md`.
+1. **Closed 2026-10-25: an empty or a short expected set.** Decided:
+   `Expected()` keeps the miniohm rule, the non-fluffy failures only,
+   with no fall back to the fluffy failures. It moved to Decisions at a
+   glance. Evidence, in `docs/kb/ohm-failure-recording.md`: for
+   `S = *x` on the Ohm grammar, miniohm gives `"}"` alone, as Go does,
+   with the same eight fluffy texts. The arith input `1 +\n (2 * x`
+   traps in miniohm and in Go, so that half is not decided by a run; no
+   arith input of up to four characters gives an empty set on a fresh
+   `Grammar`. The one empty set found comes from the state of an earlier
+   match, in miniohm too, where the message reads `expected ` with
+   nothing after it. Rerun the arith half when the compiler stops
+   trapping.
 2. **Column unit.** Code points (decided above) or UTF-16 units. A
    language server needs UTF-16 by default. `Position.Offset` covers
    that need today. Revisit if an LSP user appears.

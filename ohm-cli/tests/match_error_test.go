@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	"slices"
+	"strings"
 	"testing"
 
 	goohm "github.com/ohmjs/ohm-go/ohm"
@@ -91,5 +93,93 @@ func TestMatchError_PositionAfterClose(t *testing.T) {
 	defer other.Close()
 	if after := mr.FailurePosition(); after != before {
 		t.Errorf("FailurePosition after a second Match: got %+v, want %+v", after, before)
+	}
+}
+
+// TestMatchError_FailuresNotMostRecent checks that RightmostFailures on a
+// result that is no longer the most recent returns the most-recent error,
+// as miniohm _assertMostRecent does. Err then gives the position only.
+func TestMatchError_FailuresNotMostRecent(t *testing.T) {
+	gmr := newOhmGrammar(t)
+	first, err := gmr.Match("G {\n  S = *x\n}")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	second, err := gmr.Match("G { S = \"a\" }\nH")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	_, err = first.RightmostFailures()
+	if err == nil || !strings.Contains(err.Error(), "not the most recent match") {
+		t.Errorf("RightmostFailures after a second Match: got error %v, want the most-recent error", err)
+	}
+	if got, want := first.Err().Error(), "Line 2, col 7: match failed"; got != want {
+		t.Errorf("Err after a second Match: got %q, want %q", got, want)
+	}
+	// The second result is the most recent, so it still gets its failures.
+	if got, err := second.ExpectedText(); err != nil || got != `"{"` {
+		t.Errorf("ExpectedText of the second result: got %q, %v, want %q", got, err, `"{"`)
+	}
+	second.Close()
+	first.Close()
+}
+
+// TestMatchError_ExpectedAfterClose checks that Expected after Close
+// returns the cache, and returns the closed error when there is no cache.
+func TestMatchError_ExpectedAfterClose(t *testing.T) {
+	gmr := newOhmGrammar(t)
+	mr, err := gmr.Match("G {\n  S = *x\n}")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	before, err := mr.Expected()
+	if err != nil {
+		t.Fatalf("Expected before Close: %v", err)
+	}
+	mr.Close()
+	after, err := mr.Expected()
+	if err != nil {
+		t.Fatalf("Expected after Close: %v", err)
+	}
+	want := []goohm.Expected{{Kind: goohm.ExpectedLiteral, Text: `"}"`, Literal: "}"}}
+	if !slices.Equal(before, want) || !slices.Equal(after, want) {
+		t.Errorf("Expected: got %+v before Close and %+v after, want %+v", before, after, want)
+	}
+	// With no call before Close there is no cache, so Expected fails.
+	uncached, err := gmr.Match("G {\n  S = *x\n}")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	uncached.Close()
+	if _, err := uncached.Expected(); err == nil || !strings.Contains(err.Error(), "closed") {
+		t.Errorf("Expected after Close with no cache: got error %v, want the closed error", err)
+	}
+}
+
+// TestMatchError_CloseRestoresHeap checks that Close after
+// RightmostFailures resets the Wasm bump pointer to the watermark from
+// before the match, so it frees both parses.
+func TestMatchError_CloseRestoresHeap(t *testing.T) {
+	gmr := newOhmGrammar(t)
+	offset := func() uint64 {
+		return gmr.GetModule().ExportedGlobal("__offset").Get()
+	}
+	watermark := offset()
+	mr, err := gmr.Match("G {\n  S = *x\n}")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	afterMatch := offset()
+	if _, err := mr.RightmostFailures(); err != nil {
+		t.Fatalf("RightmostFailures: %v", err)
+	}
+	afterRecord := offset()
+	// The second parse allocates above the first, so Close must free both.
+	if afterRecord <= afterMatch {
+		t.Errorf("__offset after RightmostFailures: got %d, want above %d, the value after Match", afterRecord, afterMatch)
+	}
+	mr.Close()
+	if got := offset(); got != watermark {
+		t.Errorf("__offset after Close: got %d, want the watermark %d", got, watermark)
 	}
 }

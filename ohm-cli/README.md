@@ -169,26 +169,29 @@ example.
 ## Showing a match error
 
 `test match_error` matches an input against a grammar and prints where
-it failed: the line and column, and the failure line with a caret under
-the failure. Without `--grammar` it matches against the grammar of Ohm
-itself, so it checks the syntax of a `.ohm` file without docker. With
-`--grammar` it compiles the grammar with docker first.
+it failed and what the grammar expected there: the line and column, the
+failure line with a caret under the failure, and the next valid tokens.
+Without `--grammar` it matches against the grammar of Ohm itself, so it
+checks the syntax of a `.ohm` file without docker. With `--grammar` it
+compiles the grammar with docker first.
 
 <!--tmpl,code=bash:go run main.go test match_error -h -->
 ``` bash 
 
   Usage: ohm-cli test match_error [options] <source>
 
-  Match the source against a grammar and print the error message, or 'match succeeded'.
+  Match the source and print the error or the next valid tokens, or 'match succeeded'.
 
   Input text. If it starts with an @ it is a path to the input file.
 
   Options:
-  --grammar, -g  Path to the .ohm grammar file, compiled with docker. Defaults to the embedded Ohm
-                 grammar.
-  --start, -r    The start rule. Defaults to the grammar's default start rule.
-  --short, -s    Print the one-line short message.
-  --help, -h     display help
+  --grammar, -g   Path to the .ohm grammar file, compiled with docker. Defaults to the embedded Ohm
+                  grammar.
+  --start, -r     The start rule. Defaults to the grammar's default start rule.
+  --short, -s     Print the one-line short message.
+  --expected, -e  Print the next valid tokens, one '<kind> <text>' line each, not the message.
+  --fluffy, -f    With --expected, also print the fluffy failures, each marked ' (fluffy)'.
+  --help, -h      display help
 
 ```
 <!--/tmpl-->
@@ -200,17 +203,44 @@ Line 2, col 7:
 > 2 |   S = *x
             ^
   3 | }
+Expected "}"
 ```
 <!--/tmpl-->
 
 <!--tmpl,code=bash:go run main.go test match_error --short $'G {\n  S = *x\n}' -->
 ``` bash 
-Line 2, col 7: match failed
+Line 2, col 7: expected "}"
+```
+<!--/tmpl-->
+
+`--expected` prints the next valid tokens, one `<kind> <text>` line
+each. The kind is `literal`, `range`, `end` or `description`.
+`--fluffy` adds the fluffy failures: those of a repetition that ended
+at the failure position. The message leaves them out.
+
+<!--tmpl,code=bash:go run main.go test match_error --expected $'G {\n  S = *x\n}' -->
+``` bash 
+literal "}"
+```
+<!--/tmpl-->
+
+<!--tmpl,code=bash:go run main.go test match_error --expected --fluffy $'G {\n  S = *x\n}' -->
+``` bash 
+literal "|" (fluffy)
+literal "~" (fluffy)
+literal "&" (fluffy)
+literal "#" (fluffy)
+description an identifier (fluffy)
+literal "\"" (fluffy)
+literal "(" (fluffy)
+literal "--" (fluffy)
+literal "}"
 ```
 <!--/tmpl-->
 
 ```sh
 ohm-cli test match_error --grammar arith.ohm '1 + * 2'
+ohm-cli test match_error --grammar arith.ohm --expected '1 + * 2'
 ohm-cli test match_error --grammar arith.ohm --start PriExp 'x +'
 ohm-cli test match_error @my-grammar.ohm      # read the input from a file
 ```

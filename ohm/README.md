@@ -112,6 +112,11 @@ Failures with the same `Text` are merged. A merged failure is fluffy
 only when every copy is fluffy. The order is the order of first
 recording.
 
+When every failure is fluffy, `Expected()` is empty and the message
+reads `expected ` with nothing after it, as in miniohm. `Expected()`
+does not fall back to the fluffy failures; use `RightmostFailures()`
+for them.
+
 **Lifetime.** The first call to `RightmostFailures()`, `Expected()` or
 `ExpectedText()` parses the input a second time. So the result must be
 the most recent one, and not closed; else the call returns an error.
@@ -124,10 +129,12 @@ message reads `Line 1, col 5: match failed`. So call `Err()` before the
 next `Match`.
 
 **Known issue.** In Wasm modules from compiler `18.0.0-beta.15`, the
-second parse can trap. An example is the arith grammar with an
-unclosed `(`, such as `1 + (2`. miniohm traps on the same input.
+second parse can trap. Examples on the arith grammar are an unclosed
+`(`, such as `1 + (2`, and `1)`. miniohm traps on the same input.
 `Expected()` then returns the error, and `Err()` gives the position
-only.
+only. The second parse can also depend on earlier matches on the same
+`Grammar`. See `docs/kb/ohm-failure-recording.md` at the repository
+root.
 
 ## Build and Test
 

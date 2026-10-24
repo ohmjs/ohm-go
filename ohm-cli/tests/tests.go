@@ -246,12 +246,13 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 				file:    fi,
 				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]]),
 			})
-		case "error":
+		case "error", "expected":
 			if _, ok := txtsMap[parts[0]]; !ok {
-				panic(fmt.Errorf("txt file doesn't exist for error. %s", parts[0]))
+				panic(fmt.Errorf("txt file doesn't exist for %s. %s", ext, parts[0]))
 			}
 			cmd := &matcherr.MatchErrorCmd{
-				Source: txtsMap[parts[0]],
+				Source:   txtsMap[parts[0]],
+				Expected: ext == "expected",
 			}
 			ohmGrammar := false
 			for _, flag := range parts[1 : len(parts)-1] {
@@ -259,15 +260,17 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 					cmd.Start = rule
 					continue
 				}
-				switch flag {
-				case "o":
+				switch {
+				case flag == "o":
 					ohmGrammar = true
-				case "N":
+				case flag == "N":
 					cmd.Source = strings.TrimSuffix(cmd.Source, "\n")
-				case "s":
+				case flag == "s" && ext == "error":
 					cmd.Short = true
+				case flag == "f" && ext == "expected":
+					cmd.Fluffy = true
 				default:
-					panic("unknown short flag : " + flag)
+					panic("unknown short flag for " + ext + " : " + flag)
 				}
 			}
 			if !ohmGrammar {

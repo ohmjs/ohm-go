@@ -72,7 +72,7 @@ func init() {
 	c_and_p := opts.New(candp.NewCompileAndParseCmd()).Name("c_and_p")
 	to_sexpr := opts.New(sexpr.NewToSexprCmd()).Name("to_sexpr")
 	match_error := opts.New(matcherr.NewMatchErrorCmd()).Name("match_error").
-		Summary("Match the source against a grammar and print the error message, or 'match succeeded'.")
+		Summary("Match the source and print the error or the next valid tokens, or 'match succeeded'.")
 	txtar := opts.New(tests.NewTestGmrCmd()).Name("txtar")
 	test.
 		// AddCommand(exec_accept).

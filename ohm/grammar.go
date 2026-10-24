@@ -427,7 +427,10 @@ func (r *MatchResult) RightmostFailures() ([]Failure, error) {
 
 // Expected returns the next valid tokens: the non-fluffy failures of
 // RightmostFailures, in the same order. It has the same lifetime rules.
-// The slice is empty, not nil, when every failure is fluffy.
+// The slice is empty, not nil, when every failure is fluffy. It does not
+// fall back to the fluffy failures then, as miniohm does not; a caller
+// that wants them uses RightmostFailures.
+// See error-reporting prd section 11.1 and docs/kb/ohm-failure-recording.md.
 func (r *MatchResult) Expected() ([]Expected, error) {
 	failures, err := r.RightmostFailures()
 	if err != nil {

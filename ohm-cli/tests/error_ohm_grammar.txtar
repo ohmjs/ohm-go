@@ -1,8 +1,16 @@
 Error fixtures for the embedded Ohm grammar. Each member has flag `o`,
 so the archive needs no grammar member and no docker. Each .error member
 is the output of `ohm-cli test match_error` on the .txt member of the
-same test. Flag `N` removes the trailing newline of the .txt member, so
-the input is as in error-reporting prd section 3.
+same test, and each .expected member the output of
+`ohm-cli test match_error --expected`. Flag `N` removes the trailing
+newline of the .txt member, so the input is as in error-reporting prd
+section 3.
+
+The text matches miniohm in the ohmjs/ohm:18.0.0-beta.15 docker image
+(its runtime package.json says ohm-js 18.0.0-beta.13), run on a fresh
+Grammar per input. One difference is by design: in emoji, miniohm counts
+the column in UTF-16 units, so it reads col 14 and puts the caret one
+column to the right. See error-reporting prd section 5.
 -- star_x.txt --
 G {
   S = *x
@@ -13,8 +21,21 @@ Line 2, col 7:
 > 2 |   S = *x
             ^
   3 | }
+Expected "}"
 -- star_x.o.N.s.error --
-Line 2, col 7: match failed
+Line 2, col 7: expected "}"
+-- star_x.o.N.expected --
+literal "}"
+-- star_x.o.N.f.expected --
+literal "|" (fluffy)
+literal "~" (fluffy)
+literal "&" (fluffy)
+literal "#" (fluffy)
+description an identifier (fluffy)
+literal "\"" (fluffy)
+literal "(" (fluffy)
+literal "--" (fluffy)
+literal "}"
 -- unclosed.txt --
 G {
   S = "a"
@@ -23,13 +44,17 @@ Line 3, col 1:
   2 |   S = "a"
 > 3 | 
       ^
+Expected "..", "*", "+", "?", "~", "&", "#", an identifier, "\"", "(", "--", "|", or "}"
 -- unclosed.o.N.error --
 Line 2, col 10:
   1 | G {
 > 2 |   S = "a"
                ^
+Expected "}"
 -- unclosed.o.N.s.error --
-Line 2, col 10: match failed
+Line 2, col 10: expected "}"
+-- unclosed.o.N.expected --
+literal "}"
 -- trailing_h.txt --
 G { S = "a" }
 H
@@ -38,8 +63,11 @@ Line 2, col 2:
   1 | G { S = "a" }
 > 2 | H
        ^
+Expected "{"
 -- trailing_h.o.N.s.error --
-Line 2, col 2: match failed
+Line 2, col 2: expected "{"
+-- trailing_h.o.N.expected --
+literal "{"
 -- tab.txt --
 G {
 	S = *x
@@ -50,8 +78,9 @@ Line 2, col 6:
 > 2 | 	S = *x
            ^
   3 | }
+Expected "}"
 -- tab.o.s.error --
-Line 2, col 6: match failed
+Line 2, col 6: expected "}"
 -- emoji.txt --
 G {
   S = "😀" | *x
@@ -62,8 +91,9 @@ Line 2, col 13:
 > 2 |   S = "😀" | *x
                   ^
   3 | }
+Expected "}"
 -- emoji.o.s.error --
-Line 2, col 13: match failed
+Line 2, col 13: expected "}"
 -- line10.txt --
 G {
   A = "a"
@@ -83,5 +113,6 @@ Line 10, col 7:
 > 10 |   J = *x
              ^
   11 |   K = "k"
+Expected "}"
 -- line10.o.s.error --
-Line 10, col 7: match failed
+Line 10, col 7: expected "}"

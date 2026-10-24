@@ -47,7 +47,9 @@ a
 -- bad.txt --
 b
 -- bad.s.error --
-Line 1, col 1: match failed
+Line 1, col 1: expected "a"
+-- bad.expected --
+literal "a"
 ```
 
 An expectation follows the `.txt` of its test. When the kind uses the
@@ -61,9 +63,9 @@ grammar from `<path>`, relative to `tests/`. Its content is ignored. See
 `tests/ohm-grammar.txtar`.
 
 **Trailing newline.** A txtar member always ends in `\n`, so each input
-does too. Flag `N` of the `error` kind removes it, so a fixture can test
-the end of input. An empty member, with the next `--` line right after
-its own, is the empty input.
+does too. Flag `N` of the `error` and `expected` kinds removes it, so a
+fixture can test the end of input. An empty member, with the next `--`
+line right after its own, is the empty input.
 
 ## Kinds
 
@@ -75,6 +77,7 @@ its own, is the empty input.
 | `rule_ast` | `<test>.txt`, a grammar | the Ohm grammar | the rule AST: `test rule_ast` |
 | `go_types`, `go_interfaces`, `go_accepts` | `<test>.txt`, a grammar | the Ohm grammar | the generated Go: `generate parts <kind>` |
 | `error` | `<test>.txt` | the archive grammar, compiled by docker; the Ohm grammar with flag `o` | the error message: `test match_error` |
+| `expected` | `<test>.txt` | as for `error` | the next valid tokens: `test match_error --expected` |
 
 "The Ohm grammar" is the grammar of Ohm itself, embedded in `ohm-cli` as
 `utils/ohm-grammar.wasm`. It needs no docker.
@@ -83,10 +86,10 @@ its own, is the empty input.
 grammar, as text.
 
 **`error`** matches the input and prints `MatchError.Message()`: the
-line and column, the failure line with a caret under the failure, and
-the lines before and after. When the match succeeds, it prints
-`match succeeded`. A fixture that expects an error, on an input that
-matches, then fails as a mismatch with a diff:
+line and column, the failure line with a caret under the failure, the
+lines before and after, and the expected text. When the match succeeds,
+it prints `match succeeded`. A fixture that expects an error, on an
+input that matches, then fails as a mismatch with a diff:
 
 ```
 -- bad_op.txt --
@@ -96,12 +99,43 @@ Line 1, col 5:
 > 1 | 1 + * 2
           ^
   2 | 
+Expected "(", an identifier, or a number
 -- bad_op.s.error --
-Line 1, col 5: match failed
+Line 1, col 5: expected "(", an identifier, or a number
 ```
 
-Line 2 is shown because the input ends in `\n`. See
-`tests/error_arith.txtar` and `tests/error_ohm_grammar.txtar`.
+Line 2 is shown because the input ends in `\n`. When the runtime cannot
+get the next valid tokens, the message ends at the caret, and the short
+message reads `match failed`. Test `unclosed` in
+`tests/error_arith.txtar` shows this.
+
+**`expected`** matches the input and prints the next valid tokens, one
+`<kind> <text>` line each, in the order the runtime recorded them. The
+kind is `literal`, `range`, `end` or `description`. Flag `f` adds the
+fluffy failures, each line ending in ` (fluffy)`. A fluffy failure comes
+from a repetition that ended at the failure position; the message leaves
+it out. When the match succeeds, it prints `match succeeded`. When the
+runtime cannot get the tokens, the member is a processing error.
+
+```
+-- bad_op.expected --
+literal "("
+description an identifier
+description a number
+-- paren.txt --
+(1 +
+ (2 * x)
+-- paren.N.f.expected --
+literal "*" (fluffy)
+literal "/" (fluffy)
+literal "+" (fluffy)
+literal "-" (fluffy)
+literal ")"
+```
+
+See `tests/error_arith.txtar` and `tests/error_ohm_grammar.txtar`. Each
+archive comment names the miniohm version whose output the members
+match.
 
 ## Flags
 
@@ -122,14 +156,15 @@ kind does not know panics.
 | `go_types`, `go_interfaces`, `go_accepts` | `m` | `--generic-methods` |
 | | `g` | `--no-generics` |
 | | `s` | `--skip-type-check-method` |
-| `error` | `o` | match against the Ohm grammar, not the archive grammar; needs no docker |
+| `error`, `expected` | `o` | match against the Ohm grammar, not the archive grammar; needs no docker |
 | | `N` | remove one trailing `\n` from the input |
-| | `s` | print the one-line `ShortMessage()` |
 | | `start=<Rule>` | use `<Rule>` as the start rule |
+| `error` | `s` | print the one-line `ShortMessage()` |
+| `expected` | `f` | add the fluffy failures, each marked ` (fluffy)` |
 
-With flag `o` on each `error` member, an archive needs no grammar. The
-grammar is required only by a kind that uses it: `sexpr`, `c_and_p` and
-`error` without `o`.
+With flag `o` on each `error` and `expected` member, an archive needs no
+grammar. The grammar is required only by a kind that uses it: `sexpr`,
+`c_and_p`, and `error` and `expected` without `o`.
 
 ## Comparison, processing errors and `--strict`
 
@@ -153,20 +188,22 @@ go run . test txtar --strict tests/*.txtar
 
 ## Docker
 
-`c_and_p` and `error` without `o` compile the archive grammar with the
-`ohmjs/ohm` docker image, at the tag that matches the `ohm` runtime.
-Each grammar is compiled once per process. Docker's own output goes to
-stderr.
+`c_and_p`, and `error` and `expected` without `o`, compile the archive
+grammar with the `ohmjs/ohm` docker image, at the tag that matches the
+`ohm` runtime. Each grammar is compiled once per process. Docker's own
+output goes to stderr.
 
 ## Writing the expected output
 
 No tool writes the expected output. Run the command behind the kind,
-check its output, and paste it into the member. For an `error` member:
+check its output, and paste it into the member. For an `error` or
+`expected` member:
 
 ```sh
 go run . test match_error --grammar grammar.ohm '1 + * 2'
 go run . test match_error --short $'G {\n  S = "a"'     # Ohm grammar: flag o
 go run . test match_error --start PriExp @input.txt     # flag start=PriExp
+go run . test match_error --expected --fluffy $'G {\n  S = "a"'   # flags o and f
 ```
 
 Mind the trailing `\n` of the `.txt` member: pass it, or use flag `N`.

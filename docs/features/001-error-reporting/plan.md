@@ -5,7 +5,7 @@ argument; this one is the work. Tick a bullet in the commit that lands
 its code. Tick a bullet that is partly done as `[~]`, and say what is
 missing.
 
-**Next:** Phase 4, first bullet. First read PRD section 0: the arith input `1 +\n (2 * x` traps in `recordFailures`.
+**Next:** Phase 5, first bullet: `ohm-cli/sexpr/sexpr.go`.
 
 ## Legend
 
@@ -103,24 +103,30 @@ missing.
 
 ## Phase 4 — Next-token fixtures [10.2–10.4, 10.6, 10.8, 11.1]
 
-- [ ] `ohm-cli/matcherr/matcherr.go`: add fields `Expected` and `Fluffy` to `MatchErrorCmd`.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Process`, under `Expected`, print one `<kind> <text>` line for each token.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Process`, under `Fluffy`, add fluffy failures. End each line with ` (fluffy)`.
-- [ ] `ohm-cli/tests/tests.go`: in `testFile`, add the kind `expected`. Accept the flags `o`, `N`, `f` and `start=`.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add `.expected` fixtures for the four arith inputs in PRD section 3.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add a `.expected` fixture with `start=PriExp` for `x +`.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add a `.f.expected` fixture for `1 +\n (2 * x`.
-- [ ] `ohm-cli/tests/error_arith.txtar`: change each `.error` fixture from `match failed` to the expected text.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add `.o.expected` fixtures for the three Ohm grammar inputs.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: change each `.error` fixture from `match failed` to the expected text.
-- [ ] `ohm-cli/tests/error_arith.txtar`: in the archive comment, name the miniohm version that the text matches.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: in the archive comment, name the miniohm version that the text matches.
-- [ ] `ohm-cli/tests/match_error_test.go`: test the error from `RightmostFailures` after a second `Match`.
-- [ ] `ohm-cli/tests/match_error_test.go`: test that `Expected()` after `Close` returns the cache.
-- [ ] `ohm-cli/tests/match_error_test.go`: test that `Close` after `RightmostFailures` restores the heap watermark.
-- [ ] `docs/kb/ohm-failure-recording.md`: run miniohm on the two inputs in open decision 11.1. Record the expected text.
-- [ ] `ohm/grammar.go`: apply the result of open decision 11.1 to `Expected()`.
-- [ ] `docs/features/001-error-reporting/prd.md`: close open decision 11.1. Move it to Decisions at a glance.
+- [x] `ohm-cli/matcherr/matcherr.go`: add fields `Expected` and `Fluffy` to `MatchErrorCmd`.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Process`, under `Expected`, print one `<kind> <text>` line for each token.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Process`, under `Fluffy`, add fluffy failures. End each line with ` (fluffy)`.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, add the kind `expected`. Accept the flags `o`, `N`, `f` and `start=`.
+- [x] `ohm-cli/tests/error_arith.txtar`: add `.expected` fixtures for the four arith inputs in PRD section 3. The fourth, `1 +\n (2 * x`, traps; `paren` replaces it.
+- [x] `ohm-cli/tests/error_arith.txtar`: add a `.expected` fixture with `start=PriExp` for `x +`.
+- [x] `ohm-cli/tests/error_arith.txtar`: add a `.f.expected` fixture for `1 +\n (2 * x`. That input traps in `recordFailures` (PRD section 3). `paren.N.f.expected` uses `(1 +\n (2 * x)` instead.
+- [x] `ohm-cli/tests/error_arith.txtar`: change each `.error` fixture from `match failed` to the expected text.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add `.o.expected` fixtures for the three Ohm grammar inputs.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: change each `.error` fixture from `match failed` to the expected text.
+- [x] `ohm-cli/tests/error_arith.txtar`: in the archive comment, name the miniohm version that the text matches.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: in the archive comment, name the miniohm version that the text matches.
+- [x] `ohm-cli/tests/match_error_test.go`: test the error from `RightmostFailures` after a second `Match`.
+- [x] `ohm-cli/tests/match_error_test.go`: test that `Expected()` after `Close` returns the cache.
+- [x] `ohm-cli/tests/match_error_test.go`: test that `Close` after `RightmostFailures` restores the heap watermark.
+- [~] `docs/kb/ohm-failure-recording.md`: run miniohm on the two inputs in open decision 11.1. Record the expected text. Missing: the arith input traps in miniohm and in Go, so it has no expected text.
+- [x] `ohm/grammar.go`: apply the result of open decision 11.1 to `Expected()`. The decision keeps the code; the doc comment states it.
+- [x] `docs/features/001-error-reporting/prd.md`: close open decision 11.1. Move it to Decisions at a glance.
+- [x] `ohm-cli/tests/error_arith.txtar`: add `unclosed.N.error` and `unclosed.N.s.error`. They pin the output on the trap. Not in the plan.
+- [x] `ohm-cli/tests/error_arith.txtar`: add `paren.N.error`, `paren.N.expected` and `ok.expected`. Not in the plan.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add `star_x.o.N.f.expected`. Not in the plan.
+- [x] `ohm-cli/main.go`: name the next valid tokens in the summary of `test match_error`. Not in the plan.
+- [x] `ohm/README.md`: describe the empty expected set and the wider trap. Not in the plan.
+- [x] `docs/features/001-error-reporting/prd.md`: move the trap from section 0 to section 3. Correct the section 3 tables. Not in the plan.
 
 **Done when** `cd ohm-cli && go test ./...` passes. `ohm-cli test txtar --strict tests/*.txtar` passes. `bad_op.s.error` reads `Line 1, col 5: expected "(", an identifier, or a number`.
 
@@ -149,4 +155,6 @@ missing.
 - Next valid tokens at a cursor in input that matched. See PRD section 12.
 - A precompiled `.wasm` member in a txtar archive. See PRD section 12.
 - A fix to the `ruleNames[0]` start rule in miniohm `recordFailures`. Report it upstream.
+- The `recordFailures` trap, and failures that depend on earlier matches. Report both upstream. See `docs/kb/ohm-failure-recording.md`.
+- The arith half of open decision 11.1. Run it when the compiler stops trapping on `1 +\n (2 * x`.
 - Load `ohm-cli/es5/es5.wasm`, which is `18.0.0-beta.16`. That needs `acceptedVersions` to change.
