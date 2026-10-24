@@ -13,6 +13,7 @@ import (
 	"github.com/ohmjs/ohm-go/ohm-cli/candp"
 	"github.com/ohmjs/ohm-go/ohm-cli/es5"
 	"github.com/ohmjs/ohm-go/ohm-cli/gencmd"
+	"github.com/ohmjs/ohm-go/ohm-cli/matcherr"
 	"github.com/ohmjs/ohm-go/ohm-cli/ruleast"
 	"github.com/ohmjs/ohm-go/ohm-cli/sexpr"
 	"github.com/ohmjs/ohm-go/ohm-cli/tests"
@@ -70,12 +71,15 @@ func init() {
 	rule_ast := opts.New(ruleast.NewRuleAstCmd()).Name("rule_ast")
 	c_and_p := opts.New(candp.NewCompileAndParseCmd()).Name("c_and_p")
 	to_sexpr := opts.New(sexpr.NewToSexprCmd()).Name("to_sexpr")
+	match_error := opts.New(matcherr.NewMatchErrorCmd()).Name("match_error").
+		Summary("Match the source against a grammar and print the error message, or 'match succeeded'.")
 	txtar := opts.New(tests.NewTestGmrCmd()).Name("txtar")
 	test.
 		// AddCommand(exec_accept).
 		AddCommand(rule_ast).
 		AddCommand(c_and_p).
 		AddCommand(to_sexpr).
+		AddCommand(match_error).
 		AddCommand(txtar)
 
 	es5_roundtrip := opts.New(es5.NewEs5Roundtrip()).Name("es5_roundtrip")

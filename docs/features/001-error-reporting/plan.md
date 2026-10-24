@@ -5,7 +5,7 @@ argument; this one is the work. Tick a bullet in the commit that lands
 its code. Tick a bullet that is partly done as `[~]`, and say what is
 missing.
 
-**Next:** Phase 2, first bullet.
+**Next:** Phase 3, first bullet.
 
 ## Legend
 
@@ -46,31 +46,33 @@ missing.
 
 ## Phase 2 — Error fixtures [10.1–10.5, 10.7]
 
-- [ ] `ohm-cli/candp/candp.go`: move the body of `compile` into an exported `Compile(grammarFile string, keepWasm bool)`.
-- [ ] `ohm-cli/candp/candp.go`: make `CompileAndParseCmd.compile` call `Compile`.
-- [ ] `ohm-cli/matcherr/matcherr.go`: add type `MatchErrorCmd` with `Grammar`, `Start`, `Short` and `Source`.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Process`, use `candp.Compile` for `Grammar`. Use the embedded Ohm grammar when `Grammar` is empty.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Process`, print `Message()`, or `ShortMessage()` when `Short` is set.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Process`, print `match succeeded` when the match succeeds.
-- [ ] `ohm-cli/matcherr/matcherr.go`: in `Run`, read `Source` from a file when it starts with `@`.
-- [ ] `ohm-cli/main.go`: add the command `test match_error`.
-- [ ] `ohm-cli/tests/tests.go`: add a parser for the flag part `start=<Rule>`.
-- [ ] `ohm-cli/tests/tests.go`: in `testFile`, add the kind `error`. Read `<test>.txt`. Accept the flags `o`, `N`, `s` and `start=`.
-- [ ] `ohm-cli/tests/tests.go`: in `testFile`, under flag `N`, remove one trailing `\n` from the input.
-- [ ] `ohm-cli/tests/tests.go`: in `testFile`, write the grammar temp file only when the archive has a grammar.
-- [ ] `ohm-cli/tests/tests.go`: in `testFile`, require a grammar only for a kind that uses it.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add the arith grammar and `.error` fixtures for `1 + * 2`, `abc 12` and empty input.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add a fixture with `start=PriExp`.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add a fixture with the `s` flag.
-- [ ] `ohm-cli/tests/error_arith.txtar`: add a fixture for an input that matches. Expect `match succeeded`.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add `o` fixtures for the three Ohm grammar inputs in PRD section 3.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with a tab before the failure.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with an emoji before the failure.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture that fails on line 10 or later. It tests number alignment.
-- [ ] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with the `N` flag at the end of input.
-- [ ] `ohm-cli/tests/match_error_test.go`: test that `\r\n` and `\n` input give the same line and column.
-- [ ] `ohm-cli/tests/match_error_test.go`: test that empty input gives line 1, column 1.
-- [ ] `ohm-cli/tests/match_error_test.go`: test that `FailurePosition` gives the same value after `Close`.
+- [x] `ohm-cli/candp/candp.go`: move the body of `compile` into an exported `Compile(grammarFile string, keepWasm bool)`.
+- [x] `ohm-cli/candp/candp.go`: make `CompileAndParseCmd.compile` call `Compile`.
+- [x] `ohm-cli/matcherr/matcherr.go`: add type `MatchErrorCmd` with `Grammar`, `Start`, `Short` and `Source`.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Process`, use `candp.Compile` for `Grammar`. Use the embedded Ohm grammar when `Grammar` is empty.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Process`, print `Message()`, or `ShortMessage()` when `Short` is set.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Process`, print `match succeeded` when the match succeeds.
+- [x] `ohm-cli/matcherr/matcherr.go`: in `Run`, read `Source` from a file when it starts with `@`.
+- [x] `ohm-cli/main.go`: add the command `test match_error`.
+- [x] `ohm-cli/tests/tests.go`: add a parser for the flag part `start=<Rule>`.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, add the kind `error`. Read `<test>.txt`. Accept the flags `o`, `N`, `s` and `start=`.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, under flag `N`, remove one trailing `\n` from the input.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, write the grammar temp file only when the archive has a grammar. It is written once per archive, when the first kind that compiles it needs it.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, require a grammar only for a kind that uses it.
+- [x] `ohm-cli/tests/error_arith.txtar`: add the arith grammar and `.error` fixtures for `1 + * 2`, `abc 12` and empty input.
+- [x] `ohm-cli/tests/error_arith.txtar`: add a fixture with `start=PriExp`.
+- [x] `ohm-cli/tests/error_arith.txtar`: add a fixture with the `s` flag.
+- [x] `ohm-cli/tests/error_arith.txtar`: add a fixture for an input that matches. Expect `match succeeded`.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add `o` fixtures for the three Ohm grammar inputs in PRD section 3.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with a tab before the failure.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with an emoji before the failure.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture that fails on line 10 or later. It tests number alignment.
+- [x] `ohm-cli/tests/error_ohm_grammar.txtar`: add an `o` fixture with the `N` flag at the end of input.
+- [x] `ohm-cli/tests/match_error_test.go`: test that `\r\n` and `\n` input give the same line and column.
+- [x] `ohm-cli/tests/match_error_test.go`: test that empty input gives line 1, column 1.
+- [x] `ohm-cli/tests/match_error_test.go`: test that `FailurePosition` gives the same value after `Close`.
+- [x] `ohm-cli/candp/candp.go`: in `Compile`, send the docker output to stderr. On stdout it went into the output of `test match_error`. Not in the plan.
+- [x] `ohm-cli/tests/tests.go`: in `RunTests`, print the grammar of a processing error only when the archive has one. Not in the plan.
 
 **Done when** `cd ohm-cli && go test ./...` passes. `ohm-cli test txtar --strict tests/*.txtar` passes. `bad_op.s.error` reads `Line 1, col 5: match failed`.
 

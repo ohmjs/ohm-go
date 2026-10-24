@@ -166,6 +166,69 @@ One node value can then be visited with different payload and result types.
 See [examples/generic-methods](../examples/generic-methods) for a worked
 example.
 
+## Showing a match error
+
+`test match_error` matches an input against a grammar and prints where
+it failed: the line and column, and the failure line with a caret under
+the failure. Without `--grammar` it matches against the grammar of Ohm
+itself, so it checks the syntax of a `.ohm` file without docker. With
+`--grammar` it compiles the grammar with docker first.
+
+<!--tmpl,code=bash:go run main.go test match_error -h -->
+``` bash 
+
+  Usage: ohm-cli test match_error [options] <source>
+
+  Match the source against a grammar and print the error message, or 'match succeeded'.
+
+  Input text. If it starts with an @ it is a path to the input file.
+
+  Options:
+  --grammar, -g  Path to the .ohm grammar file, compiled with docker. Defaults to the embedded Ohm
+                 grammar.
+  --start, -r    The start rule. Defaults to the grammar's default start rule.
+  --short, -s    Print the one-line short message.
+  --help, -h     display help
+
+```
+<!--/tmpl-->
+
+<!--tmpl,code=bash:go run main.go test match_error $'G {\n  S = *x\n}' -->
+``` bash 
+Line 2, col 7:
+  1 | G {
+> 2 |   S = *x
+            ^
+  3 | }
+```
+<!--/tmpl-->
+
+<!--tmpl,code=bash:go run main.go test match_error --short $'G {\n  S = *x\n}' -->
+``` bash 
+Line 2, col 7: match failed
+```
+<!--/tmpl-->
+
+```sh
+ohm-cli test match_error --grammar arith.ohm '1 + * 2'
+ohm-cli test match_error --grammar arith.ohm --start PriExp 'x +'
+ohm-cli test match_error @my-grammar.ohm      # read the input from a file
+```
+
+On an input that matches, it prints `match succeeded`.
+
+## txtar tests
+
+The fixtures in `tests/*.txtar` hold inputs and the expected output of
+`ohm-cli` commands on them, including `test match_error`.
+[docs/txtar-tests.md](docs/txtar-tests.md) describes the archive format,
+every kind, every flag and `--strict`.
+
+```sh
+go test ./tests/
+go run . test txtar --strict tests/*.txtar
+```
+
 ## Shell Completion
 
 Install or remove zsh, bash or fish completion:

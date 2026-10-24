@@ -99,12 +99,18 @@ func (vc *CompileAndParseCmd) Process() (string, error) {
 	return result.String()[1:], nil
 }
 
-// compile answers the grammar's wasm, from wasmCache when this process
+// compile answers the grammar's wasm. See Compile.
+func (vc *CompileAndParseCmd) compile() ([]byte, error) {
+	return Compile(vc.GrammarFile, vc.KeepWasm)
+}
+
+// Compile answers the wasm of grammarFile, from wasmCache when this process
 // has compiled the same grammar before, and from the ohmjs/ohm docker
 // image otherwise. The lock is held over the compile, so two callers of
-// one grammar run docker once.
-func (vc *CompileAndParseCmd) compile() ([]byte, error) {
-	absGrammarPath, err := filepath.Abs(vc.GrammarFile)
+// one grammar run docker once. With keepWasm, it always runs docker and
+// keeps the working directory.
+func Compile(grammarFile string, keepWasm bool) ([]byte, error) {
+	absGrammarPath, err := filepath.Abs(grammarFile)
 	if err != nil {
 		return nil, fmt.Errorf("resolving grammar file path: %v", err)
 	}
@@ -116,7 +122,7 @@ func (vc *CompileAndParseCmd) compile() ([]byte, error) {
 	key := sha256.Sum256(append([]byte(dockerTag+"\x00"), src...))
 	wasmCacheMu.Lock()
 	defer wasmCacheMu.Unlock()
-	if wasm, ok := wasmCache[key]; ok && !vc.KeepWasm {
+	if wasm, ok := wasmCache[key]; ok && !keepWasm {
 		return wasm, nil
 	}
 	// create a tempdir, get the absolute path of the directory GrammarFile is in
@@ -125,7 +131,7 @@ func (vc *CompileAndParseCmd) compile() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating tempdir: %v", err)
 	}
-	if !vc.KeepWasm {
+	if !keepWasm {
 		defer os.RemoveAll(tempdir)
 	} else {
 		fmt.Fprintf(os.Stderr, "working dir %s\n", tempdir)
@@ -138,7 +144,9 @@ func (vc *CompileAndParseCmd) compile() ([]byte, error) {
 		fmt.Sprintf("ohmjs/ohm:%s", dockerTag),
 		"compile", grammarBasename,
 	)
-	cmd.Stdout = os.Stdout
+	// docker's progress goes to stderr, so stdout holds only the output
+	// of the command that compiled.
+	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("docker compile: %v", err)

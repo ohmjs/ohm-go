@@ -1,0 +1,70 @@
+Error fixtures for the arith grammar of examples/generic-methods.
+Each .error member is the output of `ohm-cli test match_error` on the
+.txt member of the same test. These fixtures compile the grammar with
+docker. See error-reporting prd section 10.
+-- grammar.ohm --
+Arithmetic {
+  Exp
+    = AddExp
+
+  AddExp
+    = AddExp "+" MulExp  -- plus
+    | AddExp "-" MulExp  -- minus
+    | MulExp
+
+  MulExp
+    = MulExp "*" PriExp  -- times
+    | MulExp "/" PriExp  -- divide
+    | PriExp
+
+  PriExp
+    = "(" Exp ")"  -- paren
+    | ident
+    | number
+
+  ident  (an identifier)
+    = letter alnum*
+
+  number  (a number)
+    = digit+
+}
+-- bad_op.txt --
+1 + * 2
+-- bad_op.error --
+Line 1, col 5:
+> 1 | 1 + * 2
+          ^
+  2 | 
+-- bad_op.s.error --
+Line 1, col 5: match failed
+-- trailing.txt --
+abc 12
+-- trailing.error --
+Line 1, col 5:
+> 1 | abc 12
+          ^
+  2 | 
+-- trailing.s.error --
+Line 1, col 5: match failed
+-- empty.txt --
+-- empty.error --
+Line 1, col 1:
+> 1 | 
+      ^
+-- empty.s.error --
+Line 1, col 1: match failed
+-- prim.txt --
+x +
+-- prim.start=PriExp.error --
+Line 1, col 3:
+> 1 | x +
+        ^
+  2 | 
+-- prim.start=PriExp.s.error --
+Line 1, col 3: match failed
+-- ok.txt --
+1 + 2 * (3 - x)
+-- ok.error --
+match succeeded
+-- ok.s.error --
+match succeeded

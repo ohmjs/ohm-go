@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/ohmjs/ohm-go/ohm-cli/candp"
+	"github.com/ohmjs/ohm-go/ohm-cli/matcherr"
 	"github.com/ohmjs/ohm-go/ohm-cli/ruleast"
 	"github.com/ohmjs/ohm-go/ohm-cli/sexpr"
 	"golang.org/x/tools/txtar"
@@ -81,11 +82,36 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 	// var gmr *string
 	sepxrs := []Expect{}
 	candps := map[string][]Expect{}
-	txtsMap := map[string]struct {
-		GrammarFile string
-		Source      string
-	}{}
+	txtsMap := map[string]string{}
 	txtKeys := []string{}
+	// grammarFile writes the archive grammar to a temp file once, and
+	// answers its path. Only a kind that compiles the grammar calls it, so
+	// an archive of `o` fixtures needs no grammar.
+	gmrPath := ""
+	grammarFile := func(name string) (string, error) {
+		if gmr == nil {
+			panic(fmt.Errorf("expected grammar file before %s. %v", name, txTarFile))
+		}
+		if gmrPath != "" {
+			return gmrPath, nil
+		}
+		tempdir, err := os.MkdirTemp("", "ohm-compile-*")
+		if err != nil {
+			return "", fmt.Errorf("creating tempdir: %v", err)
+		}
+		gmrp := filepath.Join(tempdir, gmr.Name)
+		if err = os.WriteFile(gmrp, gmr.Data, 0o644); err != nil {
+			os.RemoveAll(tempdir)
+			return "", fmt.Errorf("writing grammar file: %v", err)
+		}
+		gmrPath = gmrp
+		return gmrPath, nil
+	}
+	defer func() {
+		if gmrPath != "" {
+			os.RemoveAll(filepath.Dir(gmrPath))
+		}
+	}()
 	for _, fi := range ar.Files {
 		parts := strings.Split(fi.Name, ".")
 		ext := parts[len(parts)-1]
@@ -123,6 +149,9 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			}
 			gmr = &fi
 		case "sexpr":
+			if gmr == nil {
+				panic(fmt.Errorf("expected grammar file before %s. %v", fi.Name, txTarFile))
+			}
 			toSexpr := &sexpr.ToSexprCmd{
 				Grammar: string(gmr.Data),
 			}
@@ -152,39 +181,19 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			if _, ok := txtsMap[parts[0]]; ok {
 				panic(fmt.Errorf("duplicate txt file. %s", parts[0]))
 			}
-			if gmr == nil {
-				panic(fmt.Errorf("expected grammar file before txt file. %v", txTarFile))
-			}
-			tempdir, err := os.MkdirTemp("", "ohm-compile-*")
-			if err != nil {
-				return fmt.Errorf("creating tempdir: %v", err)
-			}
-			gmrp := filepath.Join(tempdir, gmr.Name)
-			gmrf, err := os.Create(gmrp)
-			if err != nil {
-				return fmt.Errorf("creating file: %v", err)
-			}
-			_, err = gmrf.Write(gmr.Data)
-			if err != nil {
-				return fmt.Errorf("creating writing: %v", err)
-			}
-			gmrf.Close()
-			defer os.RemoveAll(tempdir)
 			txtKeys = append(txtKeys, parts[0])
-			txtsMap[parts[0]] = struct {
-				GrammarFile string
-				Source      string
-			}{
-				GrammarFile: gmrp,
-				Source:      string(fi.Data),
-			}
+			txtsMap[parts[0]] = string(fi.Data)
 		case "c_and_p":
 			if _, ok := txtsMap[parts[0]]; !ok {
 				panic(fmt.Errorf("txt file doesn't exist for c and p. %s", parts[0]))
 			}
+			gmrp, err := grammarFile(fi.Name)
+			if err != nil {
+				return err
+			}
 			candp := &candp.CompileAndParseCmd{
-				GrammarFile: txtsMap[parts[0]].GrammarFile,
-				Source:      txtsMap[parts[0]].Source,
+				GrammarFile: gmrp,
+				Source:      txtsMap[parts[0]],
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
 				switch flag {
@@ -213,7 +222,7 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 				panic(fmt.Errorf("txt file doesn't exist for rule ast. %s", parts[0]))
 			}
 			rast := &ruleast.RuleAstCmd{
-				Grammar: txtsMap[parts[0]].Source,
+				Grammar: txtsMap[parts[0]],
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
 				switch flag {
@@ -235,12 +244,42 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			}
 			candps[parts[0]] = append(candps[parts[0]], Expect{
 				file:    fi,
-				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]].Source),
+				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]]),
+			})
+		case "error":
+			if _, ok := txtsMap[parts[0]]; !ok {
+				panic(fmt.Errorf("txt file doesn't exist for error. %s", parts[0]))
+			}
+			cmd := &matcherr.MatchErrorCmd{
+				Source: txtsMap[parts[0]],
+			}
+			ohmGrammar := false
+			for _, flag := range parts[1 : len(parts)-1] {
+				if rule, ok := startFlag(flag); ok {
+					cmd.Start = rule
+					continue
+				}
+				switch flag {
+				case "o":
+					ohmGrammar = true
+				case "N":
+					cmd.Source = strings.TrimSuffix(cmd.Source, "\n")
+				case "s":
+					cmd.Short = true
+				default:
+					panic("unknown short flag : " + flag)
+				}
+			}
+			if !ohmGrammar {
+				if cmd.Grammar, err = grammarFile(fi.Name); err != nil {
+					return err
+				}
+			}
+			candps[parts[0]] = append(candps[parts[0]], Expect{
+				file:    fi,
+				process: cmd,
 			})
 		}
-	}
-	if gmr == nil {
-		panic(fmt.Errorf("expected one grammar file per txtar. %v", txTarFile))
 	}
 	mismatches, errs := RunTests(txTarFile, gmr, sepxrs)
 	for _, f := range txtKeys {
@@ -255,6 +294,16 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 		return fmt.Errorf("%d expectation(s) did not match in %s", mismatches, txTarFile)
 	}
 	return nil
+}
+
+// startFlag parses the flag part `start=<Rule>`, and answers the rule.
+// A rule name holds no `.`, so it survives the split of the file name.
+func startFlag(flag string) (string, bool) {
+	rule, ok := strings.CutPrefix(flag, "start=")
+	if !ok || rule == "" {
+		return "", false
+	}
+	return rule, true
 }
 
 // newGenTmplExpect builds the generator command for a `<test>.<flags>.<ext>`
@@ -314,7 +363,9 @@ func RunTests(
 		if err != nil {
 			errs++
 			fmt.Fprintf(os.Stderr, "gen result error for %s, err : %v\n", exp.file.Name, err)
-			fmt.Fprintf(os.Stderr, " gmr '%s'\n", string(gmr.Data))
+			if gmr != nil {
+				fmt.Fprintf(os.Stderr, " gmr '%s'\n", string(gmr.Data))
+			}
 			fmt.Fprintf(os.Stderr, " text '%s'\n'%s'\n", exp.file.Name, string(exp.file.Data))
 			continue
 		}
