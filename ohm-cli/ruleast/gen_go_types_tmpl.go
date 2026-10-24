@@ -108,6 +108,7 @@ func (vc *GenTmplCmd) Cli(prefix string) {
 
 func (vc *GenTmplCmd) Run() error {
 	if vc.GenCmd.Grammar[:1] == "@" {
+		vc.GenCmd.InputName = vc.GenCmd.Grammar[1:]
 		barr, err := os.ReadFile(vc.GenCmd.Grammar[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %v", err)
@@ -156,7 +157,7 @@ func (vc *GenTmplCmd) Process() (string, error) {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return "", fmt.Errorf("match failed")
+		return "", utils.NewMatchError(vc.GenCmd.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return "", fmt.Errorf("Error getting cst root. %v", err)

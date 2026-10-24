@@ -23,8 +23,10 @@ and `--fluffy`, and the Go tests in `ohm-cli/tests/match_error_test.go`
 (all of section 10). Each fixture matches miniohm in the
 `ohmjs/ohm:18.0.0-beta.15` image, except the emoji column (section 5).
 Open decision 11.1 is closed, with its arith half left open by an
-upstream trap (section 3). Section 9, the `ohm-cli` commands, is not
-built; it is plan Phase 5.
+upstream trap (section 3). Section 9 is built (plan Phase 5): the
+six commands print `path:line:col: expected …` and the excerpt, and
+`ohm-cli test txtar` names an input `archive:member`. Every phase of the
+plan is done.
 
 ## 0. Blockers
 
@@ -339,7 +341,10 @@ format is `path:line:col: expected …`, the form that `go vet` and most
 editors parse. The `Message` excerpt follows on the next lines. Where
 the input has no path, such as a string from a txtar archive, the
 archive and member name take its place:
-`tests/grammar_mixed_01.txtar:file1.txt:1:1: expected …`.
+`tests/grammar_mixed_01.txtar:file1.txt:1:1: expected …`. The excerpt
+leaves out the `Line L, col C:` header and the `Expected …` line of
+`Message`, because the first line already gives both. An input given on
+the command line as text, not as `@path`, is named `<input>`.
 
 ## 10. Testing through ohm-cli
 

@@ -14,6 +14,7 @@ import (
 	"github.com/ohmjs/ohm-go/ohm-cli/matcherr"
 	"github.com/ohmjs/ohm-go/ohm-cli/ruleast"
 	"github.com/ohmjs/ohm-go/ohm-cli/sexpr"
+	"github.com/ohmjs/ohm-go/ohm-cli/utils"
 	"golang.org/x/tools/txtar"
 )
 
@@ -45,6 +46,8 @@ func (cm *testGmrCmd) Run() error {
 	if cwd, err = os.Getwd(); err != nil {
 		return err
 	}
+	// names keeps each path as given, to name the inputs in errors.
+	names := append([]string(nil), cm.TxTarFile...)
 	if filepath.Base(cwd) == "ohm-cli" {
 		for i, f := range cm.TxTarFile {
 			if cm.TxTarFile[i], err = filepath.Abs(f); err != nil {
@@ -59,8 +62,8 @@ func (cm *testGmrCmd) Run() error {
 	}
 	// Every file runs, so one failing fixture does not hide the next.
 	var errs []error
-	for _, f := range cm.TxTarFile {
-		if err = testFile(cm.ReMatchTest, f, cm.Strict); err != nil {
+	for i, f := range cm.TxTarFile {
+		if err = testFile(cm.ReMatchTest, f, names[i], cm.Strict); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -70,20 +73,28 @@ func (cm *testGmrCmd) Run() error {
 // TestFile runs the expectations of one txtar file. An expectation that
 // fails to process is reported and not counted; see RunTests.
 func TestFile(reMatchTest string, txTarFile string) error {
-	return testFile(reMatchTest, txTarFile, false)
+	return testFile(reMatchTest, txTarFile, txTarFile, false)
 }
 
-func testFile(reMatchTest string, txTarFile string, strict bool) error {
+// testFile runs the expectations of the txtar file at txTarFile. name is
+// the path of the file as the user gave it. It names the archive in the
+// output, and an input as `name:member` in a match error.
+// See error-reporting prd section 9.
+func testFile(reMatchTest string, txTarFile string, name string, strict bool) error {
 	ar, err := txtar.ParseFile(txTarFile)
 	if err != nil {
 		return err
 	}
 	var gmr *txtar.File
+	gmrName := "" // the name of the grammar in a match error
 	// var gmr *string
 	sepxrs := []Expect{}
 	candps := map[string][]Expect{}
 	txtsMap := map[string]string{}
 	txtKeys := []string{}
+	// txtName answers the name of the input of a test in a match error.
+	txtNames := map[string]string{}
+	txtName := func(test string) string { return name + ":" + txtNames[test] }
 	// grammarFile writes the archive grammar to a temp file once, and
 	// answers its path. Only a kind that compiles the grammar calls it, so
 	// an archive of `o` fixtures needs no grammar.
@@ -140,20 +151,23 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 					panic(err)
 				}
 				paths := strings.Split(fi.Name, "/")
-				name := strings.TrimPrefix(paths[len(paths)-1], "@")
+				base := strings.TrimPrefix(paths[len(paths)-1], "@")
 				gmr = &txtar.File{
-					Name: name,
+					Name: base,
 					Data: data,
 				}
+				gmrName = filepath.Join(filepath.Dir(name), fi.Name[1:])
 				continue
 			}
 			gmr = &fi
+			gmrName = name + ":" + fi.Name
 		case "sexpr":
 			if gmr == nil {
 				panic(fmt.Errorf("expected grammar file before %s. %v", fi.Name, txTarFile))
 			}
 			toSexpr := &sexpr.ToSexprCmd{
-				Grammar: string(gmr.Data),
+				Grammar:   string(gmr.Data),
+				InputName: gmrName,
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
 				switch flag {
@@ -183,6 +197,7 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			}
 			txtKeys = append(txtKeys, parts[0])
 			txtsMap[parts[0]] = string(fi.Data)
+			txtNames[parts[0]] = fi.Name
 		case "c_and_p":
 			if _, ok := txtsMap[parts[0]]; !ok {
 				panic(fmt.Errorf("txt file doesn't exist for c and p. %s", parts[0]))
@@ -194,6 +209,7 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			candp := &candp.CompileAndParseCmd{
 				GrammarFile: gmrp,
 				Source:      txtsMap[parts[0]],
+				InputName:   txtName(parts[0]),
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
 				switch flag {
@@ -222,7 +238,8 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 				panic(fmt.Errorf("txt file doesn't exist for rule ast. %s", parts[0]))
 			}
 			rast := &ruleast.RuleAstCmd{
-				Grammar: txtsMap[parts[0]],
+				Grammar:   txtsMap[parts[0]],
+				InputName: txtName(parts[0]),
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
 				switch flag {
@@ -244,7 +261,7 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			}
 			candps[parts[0]] = append(candps[parts[0]], Expect{
 				file:    fi,
-				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]]),
+				process: newGenTmplExpect(ext, parts[1:len(parts)-1], txtsMap[parts[0]], txtName(parts[0])),
 			})
 		case "error", "expected":
 			if _, ok := txtsMap[parts[0]]; !ok {
@@ -284,17 +301,17 @@ func testFile(reMatchTest string, txTarFile string, strict bool) error {
 			})
 		}
 	}
-	mismatches, errs := RunTests(txTarFile, gmr, sepxrs)
+	mismatches, errs := RunTests(name, gmr, sepxrs)
 	for _, f := range txtKeys {
-		m, e := RunTests(txTarFile, gmr, candps[f])
+		m, e := RunTests(name, gmr, candps[f])
 		mismatches += m
 		errs += e
 	}
 	if strict && errs > 0 {
-		return fmt.Errorf("%d expectation(s) did not match and %d failed to process in %s", mismatches, errs, txTarFile)
+		return fmt.Errorf("%d expectation(s) did not match and %d failed to process in %s", mismatches, errs, name)
 	}
 	if mismatches > 0 {
-		return fmt.Errorf("%d expectation(s) did not match in %s", mismatches, txTarFile)
+		return fmt.Errorf("%d expectation(s) did not match in %s", mismatches, name)
 	}
 	return nil
 }
@@ -310,13 +327,14 @@ func startFlag(flag string) (string, bool) {
 }
 
 // newGenTmplExpect builds the generator command for a `<test>.<flags>.<ext>`
-// file, where ext is one of go_types, go_interfaces or go_accepts. Single
+// file, where ext is one of go_types, go_interfaces or go_accepts.
+// inputName names the grammar in a match error. Single
 // letter flags between the test name and the extension set options:
 //
 //	m   --generic-methods
 //	g   --no-generics
 //	s   --skip-type-check-method
-func newGenTmplExpect(ext string, flags []string, grammar string) Processor {
+func newGenTmplExpect(ext string, flags []string, grammar, inputName string) Processor {
 	var cmd *ruleast.GenTmplCmd
 	switch ext {
 	case "go_types":
@@ -331,6 +349,7 @@ func newGenTmplExpect(ext string, flags []string, grammar string) Processor {
 	cmd.ExcludeCli = true
 	cmd.GenCmd.SuffixOutfLineNos = false
 	cmd.GenCmd.Grammar = grammar
+	cmd.GenCmd.InputName = inputName
 	for _, flag := range flags {
 		switch flag {
 		case "m":
@@ -351,7 +370,9 @@ func newGenTmplExpect(ext string, flags []string, grammar string) Processor {
 // the number of processing errors. A processing error (for example the
 // docker compile behind c_and_p failing, or an input that does not parse)
 // is reported, and fails the run only under --strict, so an environment
-// without docker still exercises the pure-Go generators.
+// without docker still exercises the pure-Go generators. An input that
+// does not parse is reported as `path:line:col: expected …` and its
+// excerpt (error-reporting prd section 9).
 func RunTests(
 	txTarFile string,
 	gmr *txtar.File,
@@ -365,6 +386,12 @@ func RunTests(
 		rec, err = exp.process.Process()
 		if err != nil {
 			errs++
+			if merr := (*utils.MatchError)(nil); errors.As(err, &merr) {
+				// The excerpt shows the input, so the grammar and the
+				// fixture are not printed.
+				fmt.Fprintf(os.Stderr, "gen result error for %s, err :\n%v\n", exp.file.Name, merr)
+				continue
+			}
 			fmt.Fprintf(os.Stderr, "gen result error for %s, err : %v\n", exp.file.Name, err)
 			if gmr != nil {
 				fmt.Fprintf(os.Stderr, " gmr '%s'\n", string(gmr.Data))

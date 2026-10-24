@@ -63,6 +63,7 @@ func (vc *genGoCmd) Run() error {
 		gAst *GrammarsNode
 	)
 	if vc.GenCmd.Grammar[:1] == "@" {
+		vc.GenCmd.InputName = vc.GenCmd.Grammar[1:]
 		barr, err := os.ReadFile(vc.GenCmd.Grammar[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %[1]v", err)
@@ -78,7 +79,7 @@ func (vc *genGoCmd) Run() error {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return fmt.Errorf("match failed")
+		return utils.NewMatchError(vc.GenCmd.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return fmt.Errorf("Error getting cst root. %[1]v", err)

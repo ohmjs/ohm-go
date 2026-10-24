@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/ohmjs/ohm-go/ohm"
+	"github.com/ohmjs/ohm-go/ohm-cli/utils"
 	"github.com/samber/lo"
 )
 
@@ -24,6 +25,9 @@ type CompileAndParseCmd struct {
 	Verbose            bool   `opts:"short=v" help:"Output source (start & end) and source string for every node"`
 	GrammarFile        string `opts:"mode=arg"`
 	Source             string `opts:"mode=arg"`
+	// InputName names the input in a match error: its path, or
+	// `archive:member` for a txtar input. See utils.NewMatchError.
+	InputName string `opts:"-"`
 }
 
 var builtins = map[string]struct{}{
@@ -44,6 +48,7 @@ func NewCompileAndParseCmd() *CompileAndParseCmd {
 
 func (vc *CompileAndParseCmd) Run() error {
 	if len(vc.Source) > 2 && vc.Source[:1] == "@" {
+		vc.InputName = vc.Source[1:]
 		barr, err := os.ReadFile(vc.Source[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %v", err)
@@ -89,7 +94,7 @@ func (vc *CompileAndParseCmd) Process() (string, error) {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return "", fmt.Errorf("match failed for grammar\n'%s'\nsource\n'%s'\n", vc.GrammarFile, vc.Source)
+		return "", utils.NewMatchError(vc.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return "", fmt.Errorf("Error getting cst root. %v", err)

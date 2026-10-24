@@ -166,6 +166,53 @@ One node value can then be visited with different payload and result types.
 See [examples/generic-methods](../examples/generic-methods) for a worked
 example.
 
+## Errors on input that does not parse
+
+A command that gets a grammar or an input that does not parse prints
+where it failed and what the grammar expected there. The first line is
+`path:line:col: expected …`, the form that `go vet` and most editors
+parse. The failure line with a caret, and the lines around it, follow.
+The commands are `generate go`, `generate parts`, `test rule_ast`,
+`test to_sexpr`, `test c_and_p` and `es5_roundtrip`.
+
+```sh
+$ ohm-cli generate go -P bad @bad.ohm
+bad.ohm:5:33: expected "~", "&", "#", an identifier, "\"", "(", "--", "|", or "}"
+  4 |          | PriExp
+> 5 |   PriExp = "(" Exp ")" | digit+ +
+                                      ^
+  6 | }
+```
+
+An input given with `@path` is named by its path. An input given as
+text is named `<input>`:
+
+<!--tmpl,code=bash:go run main.go test rule_ast $'G {\n  S = *x\n}' 2>&1 | grep -v '^exit status' -->
+``` bash 
+<input>:2:7: expected "}"
+  1 | G {
+> 2 |   S = *x
+            ^
+  3 | }
+```
+<!--/tmpl-->
+
+`test txtar` names an input as `archive:member`. It reports the input
+as a processing error, which fails the run under `--strict`:
+
+```
+gen result error for gram.rule_ast, err :
+tests/bad.txtar:gram.txt:2:7: expected "}"
+  1 | G {
+> 2 |   S = *x
+            ^
+  3 | }
+```
+
+When the next valid tokens are not known, the first line ends in
+`match failed` instead of `expected …`. `test match_error`, below,
+prints the same failure in the form of the ohm-js message.
+
 ## Showing a match error
 
 `test match_error` matches an input against a grammar and prints where

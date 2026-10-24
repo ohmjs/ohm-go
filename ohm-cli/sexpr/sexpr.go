@@ -19,6 +19,9 @@ type ToSexprCmd struct {
 	NoClosingNewline   bool   `opts:"short=n"`
 	Verbose            bool   `opts:"short=v" help:"Output source (start & end) and source string for every node"`
 	Grammar            string `opts:"mode=arg" help:"Grammar text, if starts with @ Path to .ohm grammar file to generate a visitor for."`
+	// InputName names the input in a match error: its path, or
+	// `archive:member` for a txtar input. See utils.NewMatchError.
+	InputName string `opts:"-"`
 }
 
 var builtins = map[string]struct{}{
@@ -39,6 +42,7 @@ func NewToSexprCmd() *ToSexprCmd {
 
 func (vc *ToSexprCmd) Run() error {
 	if vc.Grammar[:1] == "@" {
+		vc.InputName = vc.Grammar[1:]
 		barr, err := os.ReadFile(vc.Grammar[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %v", err)
@@ -70,7 +74,7 @@ func (vc *ToSexprCmd) Process() (string, error) {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return "", fmt.Errorf("match failed")
+		return "", utils.NewMatchError(vc.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return "", fmt.Errorf("Error getting cst root. %v", err)

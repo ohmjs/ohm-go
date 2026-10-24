@@ -5,7 +5,7 @@ argument; this one is the work. Tick a bullet in the commit that lands
 its code. Tick a bullet that is partly done as `[~]`, and say what is
 missing.
 
-**Next:** Phase 5, first bullet: `ohm-cli/sexpr/sexpr.go`.
+**Next:** None. Every phase is done. The open work is in [Not in any phase](#not-in-any-phase).
 
 ## Legend
 
@@ -136,13 +136,19 @@ missing.
 
 ## Phase 5 — ohm-cli commands [9]
 
-- [ ] `ohm-cli/sexpr/sexpr.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the input name.
-- [ ] `ohm-cli/candp/candp.go`: in `Process`, replace the `match failed for grammar` error with `mr.Err()`. Prefix the source path.
-- [ ] `ohm-cli/es5/roundtrip.go`: in `Run`, replace `match failed` with `mr.Err()`. Prefix the input path.
-- [ ] `ohm-cli/ruleast/gen_go.go`: in `Run`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
-- [ ] `ohm-cli/ruleast/gen_go_types_tmpl.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
-- [ ] `ohm-cli/ruleast/exec_grammar2ruleast.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
-- [ ] `ohm-cli/tests/tests.go`: in `RunTests`, print the `path:line:col` error for an expectation that fails to process.
+- [x] `ohm-cli/sexpr/sexpr.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the input name.
+- [x] `ohm-cli/candp/candp.go`: in `Process`, replace the `match failed for grammar` error with `mr.Err()`. Prefix the source path.
+- [x] `ohm-cli/es5/roundtrip.go`: in `Run`, replace `match failed` with `mr.Err()`. Prefix the input path.
+- [x] `ohm-cli/ruleast/gen_go.go`: in `Run`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
+- [x] `ohm-cli/ruleast/gen_go_types_tmpl.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
+- [x] `ohm-cli/ruleast/exec_grammar2ruleast.go`: in `Process`, replace `match failed` with `mr.Err()`. Prefix the grammar path.
+- [x] `ohm-cli/tests/tests.go`: in `RunTests`, print the `path:line:col` error for an expectation that fails to process.
+- [x] `ohm-cli/utils/match_error.go`: add `MatchError` and `NewMatchError`. They write `path:line:col:` once, and cut the `Line L, col C:` header and the `Expected` line of `Message`. Not in the plan.
+- [x] `ohm-cli/ruleast/gen_types.go`: add field `InputName` to `genCmd`. Each other command above gets the same field. `Run` sets it from `@path`. Not in the plan.
+- [x] `ohm-cli/tests/tests.go`: in `testFile`, name each input `archive:member`, with the archive path as the user gave it. Not in the plan.
+- [x] `ohm-cli/main.go`: print a match error with no help and no `Error: `, so the line starts with `path:line:col:`. Not in the plan.
+- [x] `ohm-cli/tests/match_error_test.go`: test the command error text, with and without the next valid tokens. Not in the plan.
+- [x] `ohm-cli/docs/txtar-tests.md`: show the error of an input that does not match. Not in the plan.
 
 **Done when** `cd ohm-cli && go test ./...` passes. `ohm-cli generate go` on a bad grammar prints `path:line:col: expected …`.
 
@@ -158,3 +164,4 @@ missing.
 - The `recordFailures` trap, and failures that depend on earlier matches. Report both upstream. See `docs/kb/ohm-failure-recording.md`.
 - The arith half of open decision 11.1. Run it when the compiler stops trapping on `1 +\n (2 * x`.
 - Load `ohm-cli/es5/es5.wasm`, which is `18.0.0-beta.16`. That needs `acceptedVersions` to change.
+- `ohm-cli/docs/visitors.md`: the example still returns `match failed`. Show `mr.Err()` there.

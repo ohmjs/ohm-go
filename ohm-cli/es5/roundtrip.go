@@ -8,11 +8,16 @@ import (
 	"strings"
 
 	"github.com/ohmjs/ohm-go/ohm"
+	"github.com/ohmjs/ohm-go/ohm-cli/utils"
 )
 
 type es5roundtrip struct {
 	Source string `opts:"mode=arg"`
 	sb     *strings.Builder
+
+	// InputName names the input in a match error: its path, or
+	// `archive:member` for a txtar input. See utils.NewMatchError.
+	InputName string `opts:"-"`
 }
 
 //go:generate docker run --rm -v $PWD/../../ohm-repo/examples/ecmascript/src:/local -v $PWD:/dst ohmjs/ohm:latest compile es5.ohm
@@ -37,6 +42,7 @@ func (cm *es5roundtrip) Run() error {
 		root ohm.Node
 	)
 	if len(cm.Source) > 1 && cm.Source[:1] == "@" {
+		cm.InputName = cm.Source[1:]
 		barr, err := os.ReadFile(cm.Source[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %[1]v", err)
@@ -52,7 +58,7 @@ func (cm *es5roundtrip) Run() error {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return fmt.Errorf("match failed")
+		return utils.NewMatchError(cm.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return fmt.Errorf("Error getting cst root. %[1]v", err)

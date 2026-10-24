@@ -2,11 +2,13 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
 
 	goohm "github.com/ohmjs/ohm-go/ohm"
+	"github.com/ohmjs/ohm-go/ohm-cli/sexpr"
 	"github.com/ohmjs/ohm-go/ohm-cli/utils"
 )
 
@@ -181,5 +183,63 @@ func TestMatchError_CloseRestoresHeap(t *testing.T) {
 	mr.Close()
 	if got := offset(); got != watermark {
 		t.Errorf("__offset after Close: got %d, want the watermark %d", got, watermark)
+	}
+}
+
+// TestMatchError_CommandFormat checks the error of a command on input that
+// does not parse: `name:line:col: expected …`, then the excerpt, with the
+// position and the expected text each given once (error-reporting prd
+// section 9). An input with no name reads as utils.NoInputName.
+func TestMatchError_CommandFormat(t *testing.T) {
+	for _, tc := range []struct {
+		inputName, want string
+	}{
+		{"g.ohm", "g.ohm:2:7: expected \"}\"\n" +
+			"  1 | G {\n" +
+			"> 2 |   S = *x\n" +
+			"            ^\n" +
+			"  3 | }"},
+		{"", "<input>:2:7: expected \"}\"\n" +
+			"  1 | G {\n" +
+			"> 2 |   S = *x\n" +
+			"            ^\n" +
+			"  3 | }"},
+	} {
+		cmd := &sexpr.ToSexprCmd{Grammar: "G {\n  S = *x\n}", InputName: tc.inputName}
+		_, err := cmd.Process()
+		if err == nil {
+			t.Fatalf("Process: got no error, want a match error")
+		}
+		if got := err.Error(); got != tc.want {
+			t.Errorf("Process error:\ngot\n%s\nwant\n%s", got, tc.want)
+		}
+		if merr := (*goohm.MatchError)(nil); !errors.As(err, &merr) {
+			t.Errorf("Process error: got %T, want one that wraps *ohm.MatchError", err)
+		}
+	}
+}
+
+// TestMatchError_CommandFormatNoExpected checks the error when the next
+// valid tokens are not known: `name:line:col: match failed`, then the
+// excerpt with no `Expected` line.
+func TestMatchError_CommandFormatNoExpected(t *testing.T) {
+	gmr := newOhmGrammar(t)
+	first, err := gmr.Match("G {\n  S = *x\n}")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	defer first.Close()
+	second, err := gmr.Match("G { S = \"a\" }\nH")
+	if err != nil {
+		t.Fatalf("matching: %v", err)
+	}
+	defer second.Close()
+	want := "g.ohm:2:7: match failed\n" +
+		"  1 | G {\n" +
+		"> 2 |   S = *x\n" +
+		"            ^\n" +
+		"  3 | }"
+	if got := utils.NewMatchError("g.ohm", first).Error(); got != want {
+		t.Errorf("NewMatchError after a second Match:\ngot\n%s\nwant\n%s", got, want)
 	}
 }

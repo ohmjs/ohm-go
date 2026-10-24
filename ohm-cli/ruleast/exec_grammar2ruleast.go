@@ -19,6 +19,9 @@ type RuleAstCmd struct {
 	Grammar           string `opts:"mode=arg" help:"Grammar source. If start with an @ it is a path to an .ohm grammar file."`
 	GrammarName       string `help:"For multiple grammars per file, the name of the grammar to generate code for. Only used for multi-grammar files."`
 	HandCodedWalk     bool   `opts:"short=H" help:"if set, use the hand coded walk. Default is to use the visitors. Useful for benchmarking the difference."`
+	// InputName names the input in a match error: its path, or
+	// `archive:member` for a txtar input. See utils.NewMatchError.
+	InputName string `opts:"-"`
 
 	sbldr *strings.Builder
 }
@@ -45,6 +48,7 @@ func (vc *RuleAstCmd) outf(format string, a ...any) {
 
 func (vc *RuleAstCmd) Run() error {
 	if vc.Grammar[:1] == "@" {
+		vc.InputName = vc.Grammar[1:]
 		barr, err := os.ReadFile(vc.Grammar[1:])
 		if err != nil {
 			return fmt.Errorf("Error reading grammar file. %v", err)
@@ -78,7 +82,7 @@ func (vc *RuleAstCmd) Process() (string, error) {
 	}
 	defer mr.Close()
 	if !mr.Succeeded() {
-		return "", fmt.Errorf("match failed")
+		return "", utils.NewMatchError(vc.InputName, mr)
 	}
 	if root, err = mr.GetCstRoot(); err != nil {
 		return "", fmt.Errorf("Error getting cst root. %v", err)

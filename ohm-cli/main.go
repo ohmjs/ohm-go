@@ -5,6 +5,7 @@ package main
 //go:generate go generate ./utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/ohmjs/ohm-go/ohm-cli/ruleast"
 	"github.com/ohmjs/ohm-go/ohm-cli/sexpr"
 	"github.com/ohmjs/ohm-go/ohm-cli/tests"
+	"github.com/ohmjs/ohm-go/ohm-cli/utils"
 )
 
 var (
@@ -39,6 +41,13 @@ func main() {
 	}
 	// cli = builder.ParseArgs(os.Args)
 	err = cli.Run()
+	if merr := (*utils.MatchError)(nil); errors.As(err, &merr) {
+		// No help and no "Error: ", so the line starts with
+		// `path:line:col:` and an editor can jump to it.
+		// See error-reporting prd section 9.
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(2)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%[2]s\nError: %[1]v\n\n", err, cli.Selected().Help())
 		os.Exit(2)

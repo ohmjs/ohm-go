@@ -173,7 +173,9 @@ both. A difference is a mismatch: the run prints a diff and fails.
 
 A command that returns an error is a processing error. Examples are a
 docker compile that fails, and a `c_and_p` input that does not match.
-The run prints the error and counts it apart. Without `--strict`, a
+The run prints the error and counts it apart. An input that does not
+match prints as `<archive>:<member>:<line>:<col>: expected …`, then the
+failure line with a caret. Without `--strict`, a
 processing error does not fail the run. So `go test` passes on a
 machine without docker, and still runs the kinds that need none.
 
