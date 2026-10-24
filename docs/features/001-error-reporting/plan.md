@@ -5,7 +5,7 @@ argument; this one is the work. Tick a bullet in the commit that lands
 its code. Tick a bullet that is partly done as `[~]`, and say what is
 missing.
 
-**Next:** Phase 1, first bullet.
+**Next:** Phase 2, first bullet.
 
 ## Legend
 
@@ -24,19 +24,21 @@ missing.
 
 ## Phase 1 — Position and error [4, 5, 6]
 
-- [ ] `ohm/position.go`: add type `Position` with `Offset`, `ByteOffset`, `Line` and `Column`.
-- [ ] `ohm/position.go`: add `positionAt(input string, utf16Offset int) Position`. Follow the rules in PRD section 5.
-- [ ] `ohm/grammar.go`: add fields `rightmostFailurePos` and `startRuleId` to `MatchResult`.
-- [ ] `ohm/grammar.go`: in `Match`, read the `rightmostFailurePos` global after the call to `match`. Store it.
-- [ ] `ohm/grammar.go`: in `Match`, store the resolved start rule id.
-- [ ] `ohm/grammar.go`: add `MatchResult.RightmostFailurePosition() int`.
-- [ ] `ohm/grammar.go`: add `MatchResult.FailurePosition() Position`.
-- [ ] `ohm/match_error.go`: add type `MatchError` with `Input`, `Pos` and `Expected`.
-- [ ] `ohm/match_error.go`: add `MatchError.ShortMessage()`. Write `match failed` when `Expected` is nil.
-- [ ] `ohm/match_error.go`: add `MatchError.Message()`. Show the line before, the failure line, the caret and the line after.
-- [ ] `ohm/match_error.go`: in `Message()`, right-align line numbers to the widest number shown.
-- [ ] `ohm/match_error.go`: add `MatchError.Error()`. Return `ShortMessage()`.
-- [ ] `ohm/grammar.go`: add `MatchResult.Err() error`. Return nil on success.
+- [x] `ohm/position.go`: add type `Position` with `Offset`, `ByteOffset`, `Line` and `Column`.
+- [x] `ohm/position.go`: add `positionAt(input string, utf16Offset int) Position`. Follow the rules in PRD section 5.
+- [x] `ohm/grammar.go`: add fields `rightmostFailurePos` and `startRuleId` to `MatchResult`.
+- [x] `ohm/grammar.go`: in `Match`, read the `rightmostFailurePos` global after the call to `match`. Store it.
+- [x] `ohm/grammar.go`: in `Match`, store the resolved start rule id.
+- [x] `ohm/grammar.go`: add `MatchResult.RightmostFailurePosition() int`.
+- [x] `ohm/grammar.go`: add `MatchResult.FailurePosition() Position`.
+- [x] `ohm/match_error.go`: add type `MatchError` with `Input`, `Pos` and `Expected`.
+- [x] `ohm/match_error.go`: add `MatchError.ShortMessage()`. Write `match failed` when `Expected` is nil.
+- [x] `ohm/match_error.go`: add `MatchError.Message()`. Show the line before, the failure line, the caret and the line after.
+- [x] `ohm/match_error.go`: in `Message()`, right-align line numbers to the widest number shown.
+- [x] `ohm/match_error.go`: add `MatchError.Error()`. Return `ShortMessage()`.
+- [x] `ohm/grammar.go`: add `MatchResult.Err() error`. Return nil on success.
+- [x] `ohm/expected.go`: add types `ExpectedKind` and `Expected`, so that `MatchError.Expected` compiles. Not in the plan.
+- [x] `ohm/match_error.go`: add `expectedText`. It joins `Expected` as miniohm `getExpectedText` does. `ShortMessage` and `Message` use it when `Expected` is not nil. Not in the plan.
 
 **Done when** `cd ohm && go build ./...` passes. Phase 2 tests this code.
 
@@ -78,16 +80,16 @@ missing.
 
 ## Phase 3 — Next valid tokens [7, 8]
 
-- [ ] `ohm/expected.go`: add `ExpectedKind` and its four constants.
+- [~] `ohm/expected.go`: add `ExpectedKind` and its four constants. Phase 1 added the type. The four constants are missing.
 - [ ] `ohm/expected.go`: add `ExpectedKind.String()`. Return `literal`, `range`, `end` or `description`.
-- [ ] `ohm/expected.go`: add types `Expected` and `Failure`.
+- [~] `ohm/expected.go`: add types `Expected` and `Failure`. Phase 1 added `Expected`. `Failure` is missing.
 - [ ] `ohm/expected.go`: add `classify(id int, text string) Expected`. Follow the four rules in PRD section 7.
 - [ ] `ohm/grammar.go`: add field `failures []Failure` to `MatchResult`. It is the cache.
 - [ ] `ohm/grammar.go`: add `MatchResult.RightmostFailures()`. Call `recordFailures` with the stored start rule id.
 - [ ] `ohm/grammar.go`: in `RightmostFailures`, return an error when the result is closed or not the most recent.
 - [ ] `ohm/grammar.go`: in `RightmostFailures`, merge duplicates by `Text`. Keep `Fluffy` only when every copy is fluffy.
 - [ ] `ohm/grammar.go`: add `MatchResult.Expected()`. Return the non-fluffy failures.
-- [ ] `ohm/grammar.go`: add `MatchResult.ExpectedText()`. Join as miniohm `getExpectedText` does.
+- [ ] `ohm/grammar.go`: add `MatchResult.ExpectedText()`. Join as miniohm `getExpectedText` does. Use `expectedText` in `ohm/match_error.go`.
 - [ ] `ohm/grammar.go`: in `Err()`, fill `MatchError.Expected` when the result is the most recent.
 
 **Done when** `cd ohm && go build ./...` passes. Phase 4 tests this code.

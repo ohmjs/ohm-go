@@ -12,7 +12,11 @@ fixture can state the expected error and the expected next tokens. All
 tests for this feature live in `ohm-cli`, not in `ohm`. The
 [plan](plan.md) is the checklist.
 
-**Status (2026-10-25).** Nothing is built. The Wasm modules that the
+**Status (2026-10-25).** Part A is built in `ohm` (sections 4 to 6,
+plan Phase 1): `Position`, `FailurePosition`, `MatchError` and `Err()`.
+`MatchError.Expected` stays nil until Part B, so the short message reads
+`match failed`. No fixture tests Part A yet; that is plan Phase 2. Part
+B and sections 9 and 10 are not built. The Wasm modules that the
 runtime accepts already export everything this work needs (section 3).
 A probe in Go against `arith.wasm` and the embedded Ohm grammar returned
 failure positions and expected tokens. Nothing blocks the work.

@@ -254,12 +254,14 @@ func (g *Grammar) Match(input string, startRule ...string) (*MatchResult, error)
 		return nil, fmt.Errorf("error calling match function: %v", err)
 	}
 	result := &MatchResult{
-		grammar:       g,
-		input:         input,
-		inputUTF16:    g.inputUTF16,
-		succeeded:     results[0] != 0,
-		startExpr:     startExpr,
-		heapWatermark: heapWatermark,
+		grammar:             g,
+		input:               input,
+		inputUTF16:          g.inputUTF16,
+		succeeded:           results[0] != 0,
+		startExpr:           startExpr,
+		startRuleId:         int(ruleId),
+		heapWatermark:       heapWatermark,
+		rightmostFailurePos: g.readRightmostFailurePos(),
 	}
 	g.resultStack = append(g.resultStack, result)
 	return result, nil
@@ -274,7 +276,11 @@ type MatchResult struct {
 	inputUTF16    []uint16
 	succeeded     bool
 	startExpr     string
+	startRuleId   int // the rule id passed to match; recordFailures needs it
 	heapWatermark uint64
+	// rightmostFailurePos is the Wasm global after this match, in UTF-16
+	// code units. The next match overwrites the global, so it is kept here.
+	rightmostFailurePos int
 }
 
 // Succeeded returns true if the match was successful.
@@ -285,6 +291,35 @@ func (r *MatchResult) Failed() bool { return !r.succeeded }
 
 // Input returns the input string that was matched.
 func (r *MatchResult) Input() string { return r.input }
+
+// RightmostFailurePosition returns the UTF-16 offset of the rightmost
+// failure. It mirrors the miniohm method of the same name.
+// On a successful match it returns the end of the input.
+// It is valid after Close.
+func (r *MatchResult) RightmostFailurePosition() int {
+	if r.succeeded {
+		return len(r.inputUTF16)
+	}
+	return r.rightmostFailurePos
+}
+
+// FailurePosition returns the rightmost failure as a Position.
+// On a successful match it returns the end of the input.
+// It is valid after Close.
+func (r *MatchResult) FailurePosition() Position {
+	return positionAt(r.input, r.RightmostFailurePosition())
+}
+
+// Err returns nil when the match succeeded, else a *MatchError.
+func (r *MatchResult) Err() error {
+	if r.succeeded {
+		return nil
+	}
+	return &MatchError{
+		Input: r.input,
+		Pos:   r.FailurePosition(),
+	}
+}
 
 // Dispose frees the CST memory for this match result by resetting the
 // bump-pointer allocator to the watermark recorded before this match.
@@ -410,6 +445,16 @@ func (g *Grammar) readPos() uint32 {
 		return 0
 	}
 	return uint32(posGlobal.Get())
+}
+
+// readRightmostFailurePos reads the `rightmostFailurePos` global (an i32) from
+// the Wasm module. It returns -1 when the module does not export it.
+func (g *Grammar) readRightmostFailurePos() int {
+	global := g.module.ExportedGlobal("rightmostFailurePos")
+	if global == nil {
+		return -1
+	}
+	return int(int32(global.Get()))
 }
 
 // writePos writes to the `pos` global in the Wasm module
