@@ -31,17 +31,19 @@ defer result.Close()
 
 if err := result.Err(); err != nil {
     fmt.Println(err)
-    // Line 1, col 5: match failed
+    // Line 1, col 5: expected "(", an identifier, or a number
 
     fmt.Println(err.(*ohm.MatchError).Message())
     // Line 1, col 5:
     // > 1 | 1 + * 2
     //           ^
+    // Expected "(", an identifier, or a number
 }
 ```
 
 `Message()` shows the failure line with a caret under the failure. It
-also shows the line before and the line after, when they exist.
+also shows the line before and the line after, when they exist. The
+text follows `message` and `shortMessage` in miniohm.
 
 `FailurePosition()` gives the place of the rightmost failure as a
 `Position`:
@@ -62,9 +64,70 @@ A character outside the Basic Multilingual Plane, such as an emoji, is
 one column. A tab is one column. `RightmostFailurePosition()` gives the
 raw UTF-16 offset, as the miniohm method of the same name does.
 
-`FailurePosition()`, `RightmostFailurePosition()` and `Err()` read only
-Go memory. They stay valid after `Close()`. On a successful match, the
+`FailurePosition()` and `RightmostFailurePosition()` read only Go
+memory. They stay valid after `Close()`. On a successful match, the
 position is the end of the input.
+
+### Next valid tokens
+
+`Expected()` gives what the grammar accepts at the failure position:
+
+```go
+expected, err := result.Expected()
+for _, ex := range expected {
+    fmt.Println(ex.Kind, ex.Text)
+}
+// literal "("
+// description an identifier
+// description a number
+
+text, err := result.ExpectedText()
+// "(", an identifier, or a number
+```
+
+| `Kind`                | `Text`, for example | note                          |
+|-----------------------|---------------------|-------------------------------|
+| `ExpectedLiteral`     | `"("`               | `Literal` holds `(`, unquoted |
+| `ExpectedRange`       | `"a".."z"`          |                               |
+| `ExpectedEnd`         | `end of input`      |                               |
+| `ExpectedDescription` | `a number`          | a rule, or its description    |
+
+`ExpectedKind.String()` gives `literal`, `range`, `end` or
+`description`.
+
+**Fluffy failures.** A repetition that matched some input, then failed
+at the failure position, records a fluffy failure. For `G {\n  S = *x\n}`
+on the Ohm grammar, `"}"` is the only real failure; `"|"`, `"~"`, `"("`
+and others are fluffy. `Expected()` leaves fluffy failures out, as
+miniohm does. `RightmostFailures()` keeps them, with `Fluffy` set:
+
+```go
+failures, err := result.RightmostFailures()
+for _, f := range failures {
+    fmt.Println(f.Kind, f.Text, f.Fluffy)
+}
+```
+
+Failures with the same `Text` are merged. A merged failure is fluffy
+only when every copy is fluffy. The order is the order of first
+recording.
+
+**Lifetime.** The first call to `RightmostFailures()`, `Expected()` or
+`ExpectedText()` parses the input a second time. So the result must be
+the most recent one, and not closed; else the call returns an error.
+Later calls return a cache, also after `Close()`. `Close()` frees the
+heap of both parses.
+
+`Err()` fills `MatchError.Expected` when the result is the most recent,
+or when the cache is filled. Else `Expected` is nil, and the short
+message reads `Line 1, col 5: match failed`. So call `Err()` before the
+next `Match`.
+
+**Known issue.** In Wasm modules from compiler `18.0.0-beta.15`, the
+second parse can trap. An example is the arith grammar with an
+unclosed `(`, such as `1 + (2`. miniohm traps on the same input.
+`Expected()` then returns the error, and `Err()` gives the position
+only.
 
 ## Build and Test
 

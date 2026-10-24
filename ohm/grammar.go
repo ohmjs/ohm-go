@@ -281,6 +281,10 @@ type MatchResult struct {
 	// rightmostFailurePos is the Wasm global after this match, in UTF-16
 	// code units. The next match overwrites the global, so it is kept here.
 	rightmostFailurePos int
+	// failures caches the result of RightmostFailures. It is nil until the
+	// first call, and stays valid after Close.
+	failures []Failure
+	closed   bool // set by Close; RightmostFailures needs it for its error
 }
 
 // Succeeded returns true if the match was successful.
@@ -311,14 +315,141 @@ func (r *MatchResult) FailurePosition() Position {
 }
 
 // Err returns nil when the match succeeded, else a *MatchError.
+// When the result is the most recent, Err calls RightmostFailures and fills
+// MatchError.Expected. Else Expected comes from the cache, or is nil when
+// RightmostFailures was not called before the next Match or Close.
+// See error-reporting prd section 8.
 func (r *MatchResult) Err() error {
 	if r.succeeded {
 		return nil
 	}
-	return &MatchError{
+	merr := &MatchError{
 		Input: r.input,
 		Pos:   r.FailurePosition(),
 	}
+	if r.failures != nil || r.isMostRecent() {
+		if expected, err := r.Expected(); err == nil {
+			merr.Expected = expected
+		}
+	}
+	return merr
+}
+
+// isMostRecent reports whether r is open and on top of the result stack.
+func (r *MatchResult) isMostRecent() bool {
+	stack := r.grammar.resultStack
+	return !r.closed && len(stack) > 0 && stack[len(stack)-1] == r
+}
+
+// assertMostRecent returns an error when r is closed or is not the most
+// recent result. The text follows miniohm _assertMostRecent.
+func (r *MatchResult) assertMostRecent(method string) error {
+	if r.closed {
+		return fmt.Errorf("cannot access %s after the MatchResult is closed; "+
+			"access failure information before calling Close()", method)
+	}
+	if !r.isMostRecent() {
+		return fmt.Errorf("cannot call %s on a MatchResult that is not the most recent match; "+
+			"failure information is only available before a subsequent Match() call", method)
+	}
+	return nil
+}
+
+// RightmostFailures returns every failure recorded at the rightmost
+// failure position, fluffy ones included, in the order of first
+// recording. Duplicates are merged by Text; a merged failure is fluffy
+// only when every copy is fluffy, as in miniohm getRightmostFailures.
+//
+// The first call parses the input a second time with the Wasm
+// recordFailures export, so the result must be the most recent and not
+// closed. The second parse allocates above this result's heap watermark;
+// Close frees it. Later calls, also after Close, return the cache.
+// See error-reporting prd sections 7 and 8.
+func (r *MatchResult) RightmostFailures() ([]Failure, error) {
+	if r.failures != nil {
+		return r.failures, nil
+	}
+	if r.succeeded {
+		return nil, fmt.Errorf("cannot get the failures of a successful MatchResult")
+	}
+	if err := r.assertMostRecent("RightmostFailures()"); err != nil {
+		return nil, err
+	}
+	g := r.grammar
+	exports := make(map[string]api.Function, 4)
+	for _, name := range []string{"recordFailures", "getRecordedFailuresLength", "recordedFailuresAt", "isFluffy"} {
+		exports[name] = g.module.ExportedFunction(name)
+		if exports[name] == nil {
+			return nil, fmt.Errorf("%s function not exported by module", name)
+		}
+	}
+	// recordFailures calls fillInputBuffer again. A Match that failed
+	// before it called the Wasm may have replaced the grammar's input.
+	g.input = r.input
+	g.inputUTF16 = r.inputUTF16
+	// miniohm passes ruleNames[0]; this passes the rule that Match used.
+	_, err := exports["recordFailures"].Call(g.ctx, uint64(len(r.inputUTF16)), uint64(r.startRuleId))
+	if err != nil {
+		return nil, fmt.Errorf("error calling recordFailures: %v", err)
+	}
+	lenResults, err := exports["getRecordedFailuresLength"].Call(g.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error calling getRecordedFailuresLength: %v", err)
+	}
+	n := int(int32(lenResults[0]))
+	failures := make([]Failure, 0, n)
+	index := make(map[string]int, n) // Text -> index in failures
+	for i := 0; i < n; i++ {
+		idResults, err := exports["recordedFailuresAt"].Call(g.ctx, uint64(i))
+		if err != nil {
+			return nil, fmt.Errorf("error calling recordedFailuresAt(%d): %v", i, err)
+		}
+		fluffyResults, err := exports["isFluffy"].Call(g.ctx, uint64(i))
+		if err != nil {
+			return nil, fmt.Errorf("error calling isFluffy(%d): %v", i, err)
+		}
+		id := int(int32(idResults[0]))
+		fluffy := fluffyResults[0] != 0
+		if id < 0 || id >= len(g.strings) {
+			return nil, fmt.Errorf("failure id %d out of range of the strings section", id)
+		}
+		text := g.strings[id]
+		if j, ok := index[text]; ok {
+			failures[j].Fluffy = failures[j].Fluffy && fluffy
+			continue
+		}
+		index[text] = len(failures)
+		failures = append(failures, Failure{Expected: classify(id, text), Fluffy: fluffy})
+	}
+	r.failures = failures
+	return failures, nil
+}
+
+// Expected returns the next valid tokens: the non-fluffy failures of
+// RightmostFailures, in the same order. It has the same lifetime rules.
+// The slice is empty, not nil, when every failure is fluffy.
+func (r *MatchResult) Expected() ([]Expected, error) {
+	failures, err := r.RightmostFailures()
+	if err != nil {
+		return nil, err
+	}
+	expected := make([]Expected, 0, len(failures))
+	for _, f := range failures {
+		if !f.Fluffy {
+			expected = append(expected, f.Expected)
+		}
+	}
+	return expected, nil
+}
+
+// ExpectedText joins the texts of Expected as miniohm getExpectedText
+// does: "a", "a or b", "a, b, or c".
+func (r *MatchResult) ExpectedText() (string, error) {
+	expected, err := r.Expected()
+	if err != nil {
+		return "", err
+	}
+	return expectedText(expected), nil
 }
 
 // Dispose frees the CST memory for this match result by resetting the
@@ -332,6 +463,7 @@ func (r *MatchResult) Close() {
 	}
 	g.resultStack = stack[:len(stack)-1]
 	g.writeOffset(r.heapWatermark)
+	r.closed = true
 }
 
 func (r *MatchResult) cstContext() *cstContext {

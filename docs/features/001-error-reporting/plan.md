@@ -5,7 +5,7 @@ argument; this one is the work. Tick a bullet in the commit that lands
 its code. Tick a bullet that is partly done as `[~]`, and say what is
 missing.
 
-**Next:** Phase 3, first bullet.
+**Next:** Phase 4, first bullet. First read PRD section 0: the arith input `1 +\n (2 * x` traps in `recordFailures`.
 
 ## Legend
 
@@ -82,17 +82,20 @@ missing.
 
 ## Phase 3 — Next valid tokens [7, 8]
 
-- [~] `ohm/expected.go`: add `ExpectedKind` and its four constants. Phase 1 added the type. The four constants are missing.
-- [ ] `ohm/expected.go`: add `ExpectedKind.String()`. Return `literal`, `range`, `end` or `description`.
-- [~] `ohm/expected.go`: add types `Expected` and `Failure`. Phase 1 added `Expected`. `Failure` is missing.
-- [ ] `ohm/expected.go`: add `classify(id int, text string) Expected`. Follow the four rules in PRD section 7.
-- [ ] `ohm/grammar.go`: add field `failures []Failure` to `MatchResult`. It is the cache.
-- [ ] `ohm/grammar.go`: add `MatchResult.RightmostFailures()`. Call `recordFailures` with the stored start rule id.
-- [ ] `ohm/grammar.go`: in `RightmostFailures`, return an error when the result is closed or not the most recent.
-- [ ] `ohm/grammar.go`: in `RightmostFailures`, merge duplicates by `Text`. Keep `Fluffy` only when every copy is fluffy.
-- [ ] `ohm/grammar.go`: add `MatchResult.Expected()`. Return the non-fluffy failures.
-- [ ] `ohm/grammar.go`: add `MatchResult.ExpectedText()`. Join as miniohm `getExpectedText` does. Use `expectedText` in `ohm/match_error.go`.
-- [ ] `ohm/grammar.go`: in `Err()`, fill `MatchError.Expected` when the result is the most recent.
+- [x] `ohm/expected.go`: add `ExpectedKind` and its four constants.
+- [x] `ohm/expected.go`: add `ExpectedKind.String()`. Return `literal`, `range`, `end` or `description`.
+- [x] `ohm/expected.go`: add types `Expected` and `Failure`.
+- [x] `ohm/expected.go`: add `classify(id int, text string) Expected`. Follow the four rules in PRD section 7.
+- [x] `ohm/grammar.go`: add field `failures []Failure` to `MatchResult`. It is the cache.
+- [x] `ohm/grammar.go`: add `MatchResult.RightmostFailures()`. Call `recordFailures` with the stored start rule id.
+- [x] `ohm/grammar.go`: in `RightmostFailures`, return an error when the result is closed or not the most recent.
+- [x] `ohm/grammar.go`: in `RightmostFailures`, merge duplicates by `Text`. Keep `Fluffy` only when every copy is fluffy.
+- [x] `ohm/grammar.go`: add `MatchResult.Expected()`. Return the non-fluffy failures.
+- [x] `ohm/grammar.go`: add `MatchResult.ExpectedText()`. Join as miniohm `getExpectedText` does. Use `expectedText` in `ohm/match_error.go`.
+- [x] `ohm/grammar.go`: in `Err()`, fill `MatchError.Expected` when the result is the most recent. It also fills it from the cache after the next `Match` or `Close`.
+- [x] `ohm/grammar.go`: add field `closed` to `MatchResult`. `Close` sets it. `RightmostFailures` needs it for the closed error. Not in the plan.
+- [x] `ohm/grammar.go`: in `RightmostFailures`, restore the grammar input from the result before `recordFailures`. A `Match` that fails with `rule not found` replaces the input. Not in the plan.
+- [x] `ohm/grammar.go`: in `RightmostFailures`, return an error for a successful match, as miniohm has no such method there. Not in the plan.
 
 **Done when** `cd ohm && go build ./...` passes. Phase 4 tests this code.
 

@@ -14,20 +14,33 @@ tests for this feature live in `ohm-cli`, not in `ohm`. The
 
 **Status (2026-10-25).** Part A is built in `ohm` (sections 4 to 6,
 plan Phase 1): `Position`, `FailurePosition`, `MatchError` and `Err()`.
-`MatchError.Expected` stays nil until Part B, so the short message reads
-`match failed`. Fixtures test Part A (plan Phase 2): the `error` txtar
+Fixtures test Part A (plan Phase 2): the `error` txtar
 kind, its flags `o`, `N`, `s` and `start=`, the command
 `ohm-cli test match_error`, and the Go tests in
 `ohm-cli/tests/match_error_test.go` (sections 10.1 to 10.5 and 10.7, and
-three of the six rules in 10.6). Part B, section 9, and the `expected`
-kind of section 10 are not built. The Wasm modules that the
-runtime accepts already export everything this work needs (section 3).
-A probe in Go against `arith.wasm` and the embedded Ohm grammar returned
-failure positions and expected tokens. Nothing blocks the work.
+three of the six rules in 10.6). Part B is built in `ohm` (sections 7
+and 8, plan Phase 3): `RightmostFailures`, `Expected`, `ExpectedText`,
+and `Err()` now fills `MatchError.Expected`. So the Phase 2 `.error`
+fixtures, which expect `match failed`, now fail; plan Phase 4 updates
+them. Section 9 and the `expected` kind of section 10 are not built.
+One item in section 0 blocks a Phase 4 fixture and open decision 11.1.
 
 ## 0. Blockers
 
-None.
+**`recordFailures` traps on the arith input `1 +\n (2 * x`.** It blocks
+the Phase 4 `.f.expected` fixture for that input, and the arith half of
+open decision 11.1. Any arith input with an unclosed `(` traps: `(x`
+and `(2 * x` give a Wasm stack overflow, `(2` and `1 + (2` a Wasm
+abort. miniohm in the `ohmjs/ohm:18.0.0-beta.15` image traps on the
+same inputs (`Maximum call stack size exceeded`, `Wasm abort`), so the
+bug is in the compiler runtime, not in the Go runtime. The section 3
+row for this input does not reproduce. The Go runtime returns the error
+from `RightmostFailures`, and `Err()` gives the position only. Fix:
+choose another arith input for the fluffy fixture and for 11.1, or
+report the bug upstream and wait for a fixed compiler. Checked
+2026-10-25 with a Go probe on `examples/generic-methods/arith.wasm`, and
+with `docker run --entrypoint node ohmjs/ohm:18.0.0-beta.15` on a
+script that calls `getRightmostFailures()`.
 
 `go test ./...` in `ohm/` fails before any change, because
 `TestES5Match` reads an `es5.wasm` that is not in the repository. That
