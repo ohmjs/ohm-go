@@ -186,6 +186,7 @@ kind does not know panics.
 | | `l` | prune lists: put the children of `_list` in its parent |
 | | `n` | no newline before a closing `)` |
 | | `v` | verbose: the source range and text of each node |
+| `c_and_p` | `start=<Rule>` | use `<Rule>` as the start rule; `tests/start_rule.txtar` |
 | `rule_ast` | `s` | skip the source of each rule |
 | | `l` | end each line with the Go line that wrote it |
 | `go_types`, `go_interfaces`, `go_accepts` | `m` | `--generic-methods` |

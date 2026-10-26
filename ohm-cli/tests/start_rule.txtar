@@ -1,0 +1,56 @@
+A start rule on c_and_p, the flag start=<Rule>. The input parses from
+PriExp, not from the grammar's first rule, Exp, so the tree's root is
+PriExp. The grammar is the arith grammar of error_arith.txtar.
+-- grammar.ohm --
+Arithmetic {
+  Exp
+    = AddExp
+
+  AddExp
+    = AddExp "+" MulExp  -- plus
+    | AddExp "-" MulExp  -- minus
+    | MulExp
+
+  MulExp
+    = MulExp "*" PriExp  -- times
+    | MulExp "/" PriExp  -- divide
+    | PriExp
+
+  PriExp
+    = "(" Exp ")"  -- paren
+    | ident
+    | number
+
+  ident  (an identifier)
+    = letter alnum*
+
+  number  (a number)
+    = digit+
+}
+-- group.txt --
+(1 + 2)
+-- group.start=PriExp.t.l.b.c_and_p --
+(PriExp
+  (PriExp_paren
+    (Exp
+      (AddExp
+        (AddExp_plus
+          (AddExp
+            (MulExp
+              (PriExp
+                (number
+                )
+              )
+            )
+          )
+          (MulExp
+            (PriExp
+              (number
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

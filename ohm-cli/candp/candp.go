@@ -23,6 +23,7 @@ type CompileAndParseCmd struct {
 	PruneLists         bool   `opts:"short=l"`
 	NoClosingNewline   bool   `opts:"short=n"`
 	Verbose            bool   `opts:"short=v" help:"Output source (start & end) and source string for every node"`
+	Start              string `opts:"short=r" help:"The start rule. Defaults to the grammar's default start rule."`
 	GrammarFile        string `opts:"mode=arg"`
 	Source             string `opts:"mode=arg"`
 	// InputName names the input in a match error: its path, or
@@ -89,7 +90,7 @@ func (vc *CompileAndParseCmd) Process() (string, error) {
 		return "", fmt.Errorf("creating grammar: %v", err)
 	}
 	defer gmr.Close()
-	if mr, err = gmr.Match(vc.Source); err != nil {
+	if mr, err = gmr.Match(vc.Source, vc.Start); err != nil {
 		return "", fmt.Errorf("matching: %v", err)
 	}
 	defer mr.Close()

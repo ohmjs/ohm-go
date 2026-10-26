@@ -212,6 +212,10 @@ func testFile(reMatchTest string, txTarFile string, name string, strict bool) er
 				InputName:   txtName(parts[0]),
 			}
 			for _, flag := range parts[1 : len(parts)-1] {
+				if rule, ok := startFlag(flag); ok {
+					candp.Start = rule
+					continue
+				}
 				switch flag {
 				case "t":
 					candp.ExcludeTerminals = true
