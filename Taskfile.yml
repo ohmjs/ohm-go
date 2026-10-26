@@ -1,20 +1,8 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 #
-# The release steps of this repository. ohm-go holds two published Go
-# modules, ohm and ohm-cli, and the examples module that uses both. Each
-# module is tagged as <module>/v<version>, and ohm-cli/go.mod and
-# examples/go.mod name the ohm and ohm-cli versions they build against
-# outside this workspace. go.work joins the modules here, so a change to
-# ohm is seen by ohm-cli at once; a consumer, and a nix build, see only
-# the tagged version in go.mod. So a release is: tag, push the tag, bump
-# the go.mod requires, commit.
-#
-#   task tag:ohm VERSION=1.1.0        tag ohm/v1.1.0 at HEAD, print the push
-#   git push origin ohm/v1.1.0        by hand; no task pushes
-#   task gomod:update-ohm             ohm-cli and examples require that tag
-#   task tag:ohm-cli VERSION=1.1.0    then the same for ohm-cli
-#   git push origin ohm-cli/v1.1.0
-#   task gomod:update-ohm-cli         examples requires that tag
+# The tests and the release steps of this repository: tag a module, print
+# the push command, bump the go.mod files that require it. No task pushes.
+# docs/dev.md explains each task and the order of a release.
 
 version: '3'
 
