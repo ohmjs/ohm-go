@@ -299,6 +299,39 @@ func testFile(reMatchTest string, txTarFile string, name string, strict bool) er
 				file:    fi,
 				process: cmd,
 			})
+		case "next_tokens":
+			if _, ok := txtsMap[parts[0]]; !ok {
+				panic(fmt.Errorf("txt file doesn't exist for %s. %s", ext, parts[0]))
+			}
+			cmd := &matcherr.NextTokensCmd{
+				Source: txtsMap[parts[0]],
+			}
+			ohmGrammar := false
+			for _, flag := range parts[1 : len(parts)-1] {
+				if rule, ok := startFlag(flag); ok {
+					cmd.Start = rule
+					continue
+				}
+				switch flag {
+				case "o":
+					ohmGrammar = true
+				case "N":
+					cmd.Source = strings.TrimSuffix(cmd.Source, "\n")
+				case "f":
+					cmd.Fluffy = true
+				default:
+					panic("unknown short flag for " + ext + " : " + flag)
+				}
+			}
+			if !ohmGrammar {
+				if cmd.Grammar, err = grammarFile(fi.Name); err != nil {
+					return err
+				}
+			}
+			candps[parts[0]] = append(candps[parts[0]], Expect{
+				file:    fi,
+				process: cmd,
+			})
 		}
 	}
 	mismatches, errs := RunTests(name, gmr, sepxrs)

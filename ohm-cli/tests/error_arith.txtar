@@ -1,7 +1,8 @@
 Error fixtures for the arith grammar of examples/generic-methods.
 Each .error member is the output of `ohm-cli test match_error` on the
 .txt member of the same test, and each .expected member the output of
-`ohm-cli test match_error --expected`. These fixtures compile the grammar
+`ohm-cli test match_error --expected`, and each .next_tokens member the
+output of `ohm-cli test next_tokens`. These fixtures compile the grammar
 with docker. See error-reporting prd section 10.
 
 The text matches miniohm in the ohmjs/ohm:18.0.0-beta.15 docker image
@@ -20,8 +21,9 @@ Test unclosed pins what the Go runtime does on the trap: Err() gives the
 position only, so the message ends at the caret and the short message
 reads `match failed`. miniohm throws instead. No unclosed.expected
 member is possible: `test match_error --expected` fails with
-`error calling recordFailures: stack overflow`, a processing error. When
-the compiler is fixed, both unclosed members must change.
+`error calling recordFailures: stack overflow`, a processing error, and
+so does `test next_tokens`. When the compiler is fixed, both unclosed
+members must change.
 -- grammar.ohm --
 Arithmetic {
   Exp
@@ -62,6 +64,10 @@ Line 1, col 5: expected "(", an identifier, or a number
 literal "("
 description an identifier
 description a number
+-- bad_op.next_tokens --
+literal "(": accepted
+description an identifier: untested
+description a number: untested
 -- trailing.txt --
 abc 12
 -- trailing.error --
@@ -74,6 +80,8 @@ Expected end of input
 Line 1, col 5: expected end of input
 -- trailing.expected --
 end end of input
+-- trailing.next_tokens --
+end end of input: match succeeded
 -- empty.txt --
 -- empty.error --
 Line 1, col 1:
@@ -98,6 +106,8 @@ Expected end of input
 Line 1, col 3: expected end of input
 -- prim.start=PriExp.expected --
 end end of input
+-- prim.start=PriExp.next_tokens --
+end end of input: match succeeded
 -- paren.txt --
 (1 +
  (2 * x)
@@ -115,6 +125,14 @@ literal "/" (fluffy)
 literal "+" (fluffy)
 literal "-" (fluffy)
 literal ")"
+-- paren.N.next_tokens --
+literal ")": match succeeded
+-- paren.N.f.next_tokens --
+literal "*": accepted (fluffy)
+literal "/": accepted (fluffy)
+literal "+": accepted (fluffy)
+literal "-": accepted (fluffy)
+literal ")": match succeeded
 -- unclosed.txt --
 1 +
  (2 * x
@@ -132,4 +150,6 @@ match succeeded
 -- ok.s.error --
 match succeeded
 -- ok.expected --
+match succeeded
+-- ok.next_tokens --
 match succeeded

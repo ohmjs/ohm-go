@@ -1,0 +1,21 @@
+Fixtures for a range in the next valid tokens. The grammar expects a
+range after "x", so the failure records `"a".."c"`, kind range. Each
+.next_tokens member is the output of `ohm-cli test next_tokens`, which
+tests a range with its first character. These fixtures compile the
+grammar with docker. See error-reporting prd section 10.9.
+-- grammar.ohm --
+Range {
+  S = "x" "a".."c" end
+}
+-- bad.txt --
+xq
+-- bad.N.expected --
+range "a".."c"
+-- bad.N.next_tokens --
+range "a".."c": match succeeded
+-- short.txt --
+x
+-- short.N.expected --
+range "a".."c"
+-- short.N.next_tokens --
+range "a".."c": match succeeded

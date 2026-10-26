@@ -59,6 +59,8 @@
         devPackages = with pkgs; [
           adl
           go
+          # The task runner, for Taskfile.yml: tags, go.mod bumps, tests.
+          go-task
         ];
       in
       {

@@ -1,8 +1,9 @@
 Error fixtures for the embedded Ohm grammar. Each member has flag `o`,
 so the archive needs no grammar member and no docker. Each .error member
 is the output of `ohm-cli test match_error` on the .txt member of the
-same test, and each .expected member the output of
-`ohm-cli test match_error --expected`. Flag `N` removes the trailing
+same test, each .expected member the output of
+`ohm-cli test match_error --expected`, and each .next_tokens member the
+output of `ohm-cli test next_tokens`. Flag `N` removes the trailing
 newline of the .txt member, so the input is as in error-reporting prd
 section 3.
 
@@ -36,6 +37,18 @@ literal "\"" (fluffy)
 literal "(" (fluffy)
 literal "--" (fluffy)
 literal "}"
+-- star_x.o.N.next_tokens --
+literal "}": match succeeded
+-- star_x.o.N.f.next_tokens --
+literal "|": accepted (fluffy)
+literal "~": accepted (fluffy)
+literal "&": accepted (fluffy)
+literal "#": accepted (fluffy)
+description an identifier: untested (fluffy)
+literal "\"": accepted (fluffy)
+literal "(": accepted (fluffy)
+literal "--": accepted (fluffy)
+literal "}": match succeeded
 -- unclosed.txt --
 G {
   S = "a"
@@ -68,6 +81,8 @@ Expected "{"
 Line 2, col 2: expected "{"
 -- trailing_h.o.N.expected --
 literal "{"
+-- trailing_h.o.N.next_tokens --
+literal "{": accepted
 -- tab.txt --
 G {
 	S = *x

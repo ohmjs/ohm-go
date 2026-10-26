@@ -82,6 +82,8 @@ func init() {
 	to_sexpr := opts.New(sexpr.NewToSexprCmd()).Name("to_sexpr")
 	match_error := opts.New(matcherr.NewMatchErrorCmd()).Name("match_error").
 		Summary("Match the source and print the error or the next valid tokens, or 'match succeeded'.")
+	next_tokens := opts.New(matcherr.NewNextTokensCmd()).Name("next_tokens").
+		Summary("Match the source and test each next valid token of the failure: match the input up to the failure with the token after it, and print whether the grammar takes it.")
 	txtar := opts.New(tests.NewTestGmrCmd()).Name("txtar")
 	test.
 		// AddCommand(exec_accept).
@@ -89,6 +91,7 @@ func init() {
 		AddCommand(c_and_p).
 		AddCommand(to_sexpr).
 		AddCommand(match_error).
+		AddCommand(next_tokens).
 		AddCommand(txtar)
 
 	es5_roundtrip := opts.New(es5.NewEs5Roundtrip()).Name("es5_roundtrip")

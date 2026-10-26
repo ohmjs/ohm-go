@@ -1,6 +1,7 @@
 // Package matcherr prints the error of a failed match, or its next valid
-// tokens. It backs the `.error` and `.expected` txtar kinds.
-// See error-reporting prd section 10.5.
+// tokens, and tests those tokens. It backs the `.error`, `.expected` and
+// `.next_tokens` txtar kinds.
+// See error-reporting prd sections 10.5 and 10.9.
 package matcherr
 
 import (
@@ -29,12 +30,9 @@ func NewMatchErrorCmd() *MatchErrorCmd {
 }
 
 func (cmd *MatchErrorCmd) Run() error {
-	if strings.HasPrefix(cmd.Source, "@") {
-		barr, err := os.ReadFile(cmd.Source[1:])
-		if err != nil {
-			return fmt.Errorf("reading source file: %v", err)
-		}
-		cmd.Source = string(barr)
+	var err error
+	if cmd.Source, err = readSource(cmd.Source); err != nil {
+		return err
 	}
 	out, err := cmd.Process()
 	if err != nil {
@@ -48,16 +46,9 @@ func (cmd *MatchErrorCmd) Run() error {
 // `match succeeded` when the input matches. Under Expected it answers the
 // next valid tokens instead; see expectedLines.
 func (cmd *MatchErrorCmd) Process() (string, error) {
-	wasmBytes := utils.OhmGrammarWasmBytes()
-	if cmd.Grammar != "" {
-		var err error
-		if wasmBytes, err = candp.Compile(cmd.Grammar, false); err != nil {
-			return "", err
-		}
-	}
-	gmr, err := ohm.NewGrammar(context.Background(), wasmBytes)
+	gmr, err := openGrammar(cmd.Grammar)
 	if err != nil {
-		return "", fmt.Errorf("creating grammar: %v", err)
+		return "", err
 	}
 	defer gmr.Close()
 	mr, err := gmr.Match(cmd.Source, cmd.Start)
@@ -79,6 +70,36 @@ func (cmd *MatchErrorCmd) Process() (string, error) {
 		return merr.ShortMessage(), nil
 	}
 	return merr.Message(), nil
+}
+
+// openGrammar answers the grammar at grammarPath, compiled with docker
+// through the per-process cache of candp, or the embedded Ohm grammar
+// when grammarPath is empty. The caller closes it.
+func openGrammar(grammarPath string) (*ohm.Grammar, error) {
+	wasmBytes := utils.OhmGrammarWasmBytes()
+	if grammarPath != "" {
+		var err error
+		if wasmBytes, err = candp.Compile(grammarPath, false); err != nil {
+			return nil, err
+		}
+	}
+	gmr, err := ohm.NewGrammar(context.Background(), wasmBytes)
+	if err != nil {
+		return nil, fmt.Errorf("creating grammar: %v", err)
+	}
+	return gmr, nil
+}
+
+// readSource answers source, or the file it names when it starts with @.
+func readSource(source string) (string, error) {
+	if !strings.HasPrefix(source, "@") {
+		return source, nil
+	}
+	barr, err := os.ReadFile(source[1:])
+	if err != nil {
+		return "", fmt.Errorf("reading source file: %v", err)
+	}
+	return string(barr), nil
 }
 
 // expectedLines answers one `<kind> <text>` line per next valid token, in

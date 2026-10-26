@@ -154,10 +154,23 @@ missing.
 
 **Documentation** `ohm-cli/README.md`: add an example of the error output.
 
+## Phase 6 — Testing the next valid tokens [10.9]
+
+- [x] `ohm-cli/matcherr/matcherr.go`: move the grammar loading into `openGrammar`, and the `@path` reading into `readSource`, so a second command shares them.
+- [x] `ohm-cli/matcherr/next_tokens.go`: add `NextTokensCmd`. For each recorded failure, match the input up to the failure with the token after it. Print `<kind> <text>: <verdict>`.
+- [x] `ohm-cli/main.go`: add `test next_tokens`.
+- [x] `ohm-cli/tests/tests.go`: add the kind `next_tokens`, with flags `o`, `N`, `start=<Rule>` and `f`.
+- [x] `ohm-cli/tests/error_arith.txtar`, `error_ohm_grammar.txtar`: add a `.next_tokens` member beside each `.expected` member.
+- [x] `ohm-cli/tests/error_range.txtar`: add a grammar whose failure records a range, so the range probe runs. Needs docker.
+
+**Done when** `cd ohm-cli && go run . test txtar --strict tests/error_*.txtar` passes with docker. Checked 2026-10-26.
+
+**Documentation** `ohm-cli/docs/txtar-tests.md`: the kind, its verdicts and flag `f`. PRD section 10.9.
+
 ## Not in any phase
 
 - `ohm/grammar_test.go`: `TestES5Match` fails, because `es5.wasm` is absent. Fix it apart from this feature.
-- Tag `ohm` `v1.1.0`, then move `ohm-cli/go.mod` from `ohm v1.0.0` to it. Do this on "release".
+- Tag `ohm` `v1.1.0`, then move `ohm-cli/go.mod` from `ohm v1.0.0` to it. Do this on "release": `task tag:ohm VERSION=1.1.0`, push the tag as it says, then `task gomod:update-ohm`. `Taskfile.yml` at the repository root has the steps.
 - Next valid tokens at a cursor in input that matched. See PRD section 12.
 - A precompiled `.wasm` member in a txtar archive. See PRD section 12.
 - A fix to the `ruleNames[0]` start rule in miniohm `recordFailures`. Report it upstream.

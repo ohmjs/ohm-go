@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+#
+# The release steps of this repository. ohm-go holds two published Go
+# modules, ohm and ohm-cli, and the examples module that uses both. Each
+# module is tagged as <module>/v<version>, and ohm-cli/go.mod and
+# examples/go.mod name the ohm and ohm-cli versions they build against
+# outside this workspace. go.work joins the modules here, so a change to
+# ohm is seen by ohm-cli at once; a consumer, and a nix build, see only
+# the tagged version in go.mod. So a release is: tag, push the tag, bump
+# the go.mod requires, commit.
+#
+#   task tag:ohm VERSION=1.1.0        tag ohm/v1.1.0 at HEAD, print the push
+#   git push origin ohm/v1.1.0        by hand; no task pushes
+#   task gomod:update-ohm             ohm-cli and examples require that tag
+#   task tag:ohm-cli VERSION=1.1.0    then the same for ohm-cli
+#   git push origin ohm-cli/v1.1.0
+#   task gomod:update-ohm-cli         examples requires that tag
+
+version: '3'
+
+vars:
+  MODULE: github.com/ohmjs/ohm-go
+
+tasks:
+
+  test:
+    desc: Run the Go tests and every txtar fixture, strict, so a fixture that did not run fails
+    dir: ohm-cli
+    cmds:
+      - go test ./...
+      - go run . test txtar --strict tests/*.txtar
+
+  tag:list:
+    desc: Show the latest tag of ohm and of ohm-cli, and whether each is on origin
+    silent: true
+    cmds:
+      - for: [ohm, ohm-cli]
+        cmd: |
+          tag=$(git tag -l '{{.ITEM}}/v*' --sort=-v:refname | head -n 1)
+          if [ -z "$tag" ]; then echo "{{.ITEM}}: no tag"; exit 0; fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            where="on origin"
+          else
+            where="not on origin; git push origin $tag"
+          fi
+          echo "{{.ITEM}}: $tag at $(git rev-parse --short "$tag^{commit}"), $where"
+
+  tag:ohm:
+    desc: "Tag the ohm module at HEAD: task tag:ohm VERSION=1.1.0. Prints the push command; it does not push."
+    cmds:
+      - task: tag
+        vars: { MOD: ohm, VERSION: '{{.VERSION}}' }
+
+  tag:ohm-cli:
+    desc: "Tag the ohm-cli module at HEAD: task tag:ohm-cli VERSION=1.1.0. Prints the push command; it does not push."
+    cmds:
+      - task: tag
+        vars: { MOD: ohm-cli, VERSION: '{{.VERSION}}' }
+
+  tag:
+    internal: true
+    requires:
+      vars: [MOD, VERSION]
+    silent: true
+    cmds:
+      - |
+        tag="{{.MOD}}/v{{.VERSION}}"
+        case "{{.VERSION}}" in
+          v*) echo "VERSION is the number only, without the v: {{.VERSION}}" >&2; exit 1 ;;
+          *.*.*) ;;
+          *) echo "VERSION must be major.minor.patch: {{.VERSION}}" >&2; exit 1 ;;
+        esac
+        if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+          echo "$tag exists, at $(git rev-parse --short "$tag^{commit}")" >&2
+          exit 1
+        fi
+        if [ -n "$(git status --porcelain -- {{.MOD}})" ]; then
+          echo "{{.MOD}}/ has uncommitted changes; commit them, then tag" >&2
+          exit 1
+        fi
+        git tag -a "$tag" -m release
+        echo "tagged $tag at $(git rev-parse --short HEAD). To publish it:"
+        echo
+        echo "  git push origin $tag"
+        echo
+
+  gomod:update-ohm:
+    desc: "Move the ohm require of ohm-cli/go.mod and examples/go.mod to a pushed ohm tag: task gomod:update-ohm [VERSION=1.1.0]. Default is the latest ohm tag."
+    vars:
+      LATEST:
+        sh: git tag -l 'ohm/v*' --sort=-v:refname | head -n 1 | sed 's|^ohm/v||'
+      VERSION: '{{.VERSION | default .LATEST}}'
+    cmds:
+      - task: gomod:update
+        vars: { MOD: ohm, VERSION: '{{.VERSION}}', DIRS: 'ohm-cli examples' }
+
+  gomod:update-ohm-cli:
+    desc: "Move the ohm-cli require of examples/go.mod to a pushed ohm-cli tag: task gomod:update-ohm-cli [VERSION=1.1.0]. Default is the latest ohm-cli tag."
+    vars:
+      LATEST:
+        sh: git tag -l 'ohm-cli/v*' --sort=-v:refname | head -n 1 | sed 's|^ohm-cli/v||'
+      VERSION: '{{.VERSION | default .LATEST}}'
+    cmds:
+      - task: gomod:update
+        vars: { MOD: ohm-cli, VERSION: '{{.VERSION}}', DIRS: 'examples' }
+
+  gomod:update:
+    internal: true
+    requires:
+      vars: [MOD, VERSION, DIRS]
+    silent: true
+    cmds:
+      # go get fetches the tag from origin, through the module proxy or
+      # direct. A tag that is only local cannot be fetched, so the task
+      # stops and says how to push it. GOWORK=off, because go get and go
+      # mod tidy must edit the one module, not resolve it from go.work.
+      # GOPROXY=direct, because the proxy remembers a missing version for
+      # a while after the push.
+      - |
+        tag="{{.MOD}}/v{{.VERSION}}"
+        if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+          echo "$tag is not on origin, and go get needs it there. Push it, then run this task again:" >&2
+          echo >&2
+          echo "  git push origin $tag" >&2
+          echo >&2
+          exit 1
+        fi
+      - for: { var: DIRS }
+        cmd: |
+          echo "{{.ITEM}}/go.mod: {{.MODULE}}/{{.MOD}} v{{.VERSION}}"
+          GOWORK=off GOPROXY=direct go -C {{.ITEM}} get {{.MODULE}}/{{.MOD}}@v{{.VERSION}}
+          GOWORK=off GOPROXY=direct go -C {{.ITEM}} mod tidy
+      - go work sync
+      - git status --short -- '*/go.mod' '*/go.sum' go.work.sum
+      - echo "commit the go.mod, go.sum and go.work.sum changes above"

@@ -26,7 +26,10 @@ Open decision 11.1 is closed, with its arith half left open by an
 upstream trap (section 3). Section 9 is built (plan Phase 5): the
 six commands print `path:line:col: expected …` and the excerpt, and
 `ohm-cli test txtar` names an input `archive:member`. Every phase of the
-plan is done.
+plan is done. On 2026-10-26, section 10.9 added `ohm-cli test
+next_tokens` and the `next_tokens` txtar kind (plan Phase 6): each next
+valid token is tested by a second match, and the fixtures pin the
+verdicts.
 
 ## 0. Blockers
 
@@ -57,6 +60,7 @@ plan lists it under **Not in any phase**.
 | Where tests live | `ohm-cli`: txtar fixtures, plus Go tests in `ohm-cli/tests` for what a fixture cannot state (section 10) | New tests in `ohm/`, with a Wasm fixture copied into `ohm/testdata` |
 | How a fixture states an error | Two new expectation kinds, `<test>.error` and `<test>.expected`, beside `c_and_p` and `rule_ast` (section 10.2) | One kind that holds both; a `want-error` flag on `c_and_p` |
 | Command behind the new kinds | A new command, `ohm-cli test match_error`, as each existing kind has one (section 10.5) | Code in `tests.go` only, with no command |
+| Whether a recorded token is right | Test it: `ohm-cli test next_tokens` matches the input up to the failure with the token after it, and the `next_tokens` kind pins the verdict (section 10.9) | Trust the recording; a Go test per grammar |
 | Grammar a fixture matches against | The archive's `.ohm`, compiled by docker as for `c_and_p`; or, with flag `o`, the embedded Ohm grammar, with no docker (section 10.3) | A precompiled `.wasm` named in the archive |
 
 ## 1. Problem
@@ -387,6 +391,9 @@ When the match succeeds, the output of either kind is the one line
 `match succeeded`. The expectation then shows as a mismatch with a
 diff, not as a processing error, so `go test` fails.
 
+A third kind, `<test>.<flags>.next_tokens`, tests the tokens that
+`.expected` lists. Section 10.9 specifies it.
+
 ### 10.3 Flags for both new kinds
 
 | flag | effect |
@@ -501,6 +508,53 @@ miniohm prints for the same grammar and input. The fixture's txtar
 comment, the text before the first member, names the miniohm version
 that produced it. A difference is a bug in the Go runtime, or the
 column unit of section 5.
+
+### 10.9 Testing the next valid tokens
+
+The failures the Wasm records are a claim: the grammar accepts each of
+them at the failure position. Section 3 shows the claim is not always
+safe, because the recorded failures can depend on earlier matches. A
+fixture of the `expected` kind pins the claim; nothing checks it. The
+command `ohm-cli test next_tokens` does:
+
+```
+ohm-cli test next_tokens [--grammar <file.ohm>] [--start <Rule>] [--fluffy] <source>
+```
+
+It matches the source. On a failure it takes the failure position and
+the recorded failures, as `match_error --expected` does. Then, for
+each token, it matches again: the input up to the failure position,
+with the text of the token after it. The second match needs no
+`recordFailures`, only `Succeeded` and `FailurePosition`, so it cannot
+trap and does not disturb the cached failures of the first result. It
+prints one line per token, `<kind> <text>: <verdict>`, in the order of
+first recording:
+
+| verdict | rule |
+|---|---|
+| `accepted` | the second match fails, and its rightmost failure is at or past the end of the token |
+| `match succeeded` | the second match succeeds |
+| `rejected at L:C` | the second match fails inside the token. For `end of input` the text is empty, so any failure rejects it |
+| `untested` | a `description` names no text, so nothing is tried |
+
+The text of a token is its `Literal` for `ExpectedLiteral`, the first
+character of the range for `ExpectedRange`, and empty for
+`ExpectedEnd`. `--fluffy` tests the fluffy failures too, each line
+marked ` (fluffy)`. When the source matches, the output is
+`match succeeded`.
+
+The txtar kind `next_tokens` is backed by this command. It takes the
+flags `o`, `N`, `start=<Rule>` and `f` of section 10.3. A `rejected`
+line in a fixture records a token the runtime claims and the grammar
+refuses: a bug in the failure recording, or a token that only a longer
+input can take. The fixtures in `error_arith.txtar`,
+`error_ohm_grammar.txtar` and `error_range.txtar` show no `rejected`
+line on 2026-10-26.
+
+The verdict `accepted` is a rightmost-failure test, not a proof. An
+expression that fails past the token on another path of the grammar
+moves the rightmost failure too. That is rare, and the fixture then
+reads `accepted` where a stricter test would not.
 
 ## 11. Open decisions
 
